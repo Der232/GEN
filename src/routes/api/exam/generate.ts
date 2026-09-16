@@ -1,4 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+// @ts-ignore
+import { env } from 'cloudflare:workers'
 import { z } from 'zod'
 
 const GeneratedQuestionSchema = z.object({
@@ -111,8 +113,8 @@ TARGET SPECIFICATIONS:
 
 Please generate the complete exam in the required JSON format.`
 
-          const groqApiKey = process.env.GROQ_API_KEY
-          const groqBaseUrl = process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1'
+          const groqApiKey = process.env.GROQ_API_KEY || (env as any)?.GROQ_API_KEY
+          const groqBaseUrl = process.env.GROQ_BASE_URL || (env as any)?.GROQ_BASE_URL || 'https://api.groq.com/openai/v1'
 
           if (!groqApiKey) {
             return new Response(

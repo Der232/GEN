@@ -5,10 +5,23 @@ import { cloudflare } from '@cloudflare/vite-plugin'
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 const isTest = Boolean(process.env.VITEST)
 
 const config = defineConfig({
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    tsconfigPaths: true,
+    alias: {
+      ...(isTest
+        ? { 'cloudflare:workers': path.resolve(__dirname, './src/test-stubs/cloudflare-workers.ts') }
+        : {}),
+    },
+  },
   server: {
     watch: {
       ignored: ['**/.wrangler/**'],

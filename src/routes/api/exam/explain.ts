@@ -1,4 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+// @ts-ignore
+import { env } from 'cloudflare:workers'
 
 export const Route = createFileRoute('/api/exam/explain')({
   server: {
@@ -15,8 +17,8 @@ export const Route = createFileRoute('/api/exam/explain')({
             })
           }
 
-          const groqApiKey = process.env.GROQ_API_KEY
-          const groqBaseUrl = process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1'
+          const groqApiKey = process.env.GROQ_API_KEY || (env as any)?.GROQ_API_KEY
+          const groqBaseUrl = process.env.GROQ_BASE_URL || (env as any)?.GROQ_BASE_URL || 'https://api.groq.com/openai/v1'
 
           if (!groqApiKey) {
             return new Response(JSON.stringify({ error: 'AI provider not configured' }), {

@@ -2,6 +2,8 @@ import { betterAuth } from 'better-auth'
 import { anonymous } from 'better-auth/plugins'
 import { tanstackStartCookies } from 'better-auth/tanstack-start'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+// @ts-ignore
+import { env } from 'cloudflare:workers'
 import { db } from '#/db'
 import * as schema from '#/db/schema'
 import { eq } from 'drizzle-orm'
@@ -36,7 +38,15 @@ export const auth = betterAuth({
     },
   }),
 
-  secret: process.env.BETTER_AUTH_SECRET || 'supersecretdefaultauthkeyforgeneratorexams32chars',
+  baseURL:
+    process.env.BETTER_AUTH_URL ||
+    (env as any)?.BETTER_AUTH_URL ||
+    'https://gen.hun-wrk0966.workers.dev',
+
+  secret:
+    process.env.BETTER_AUTH_SECRET ||
+    (env as any)?.BETTER_AUTH_SECRET ||
+    'supersecretdefaultauthkeyforgeneratorexams32chars',
 
   emailAndPassword: {
     enabled: true,
