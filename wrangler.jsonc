@@ -8,7 +8,7 @@
     {
       "binding": "DB",
       "database_name": "gen-db",
-      "database_id": "placeholder-to-be-set-on-creation",
+      "database_id": "b30aeba6-b01c-4b55-bcff-4f48d35771be",
       "migrations_dir": "./drizzle"
     }
   ],
