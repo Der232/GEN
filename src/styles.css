@@ -1,0 +1,209 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Default & Dark Mode: Dark Charcoal & Dark Grey with Pure White Accents ─── */
+:root,
+.dark {
+  --bg-main: #0c0d0e;
+  --bg-surface: #131417;
+  --bg-surface-elevated: #1a1b1f;
+  --border-subtle: #24262b;
+  --border-strong: #33363e;
+
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+
+  --btn-primary-bg: #ffffff;
+  --btn-primary-text: #0c0d0e;
+  --btn-primary-hover: #e4e4e7;
+
+  --btn-secondary-bg: #1a1b1f;
+  --btn-secondary-text: #ffffff;
+  --btn-secondary-border: #2e3037;
+  --btn-secondary-hover: #26282f;
+
+  --nav-active-bg: #1a1b1f;
+  --nav-active-text: #ffffff;
+  --nav-active-border: #33363e;
+
+  --badge-neutral-bg: #1a1b1f;
+  --badge-neutral-text: #ffffff;
+  --badge-neutral-border: #2e3037;
+
+  --color-success: #10b981;
+  --color-success-subtle: rgba(16, 185, 129, 0.14);
+  --color-warning: #f59e0b;
+  --color-warning-subtle: rgba(245, 158, 11, 0.14);
+  --color-danger: #ef4444;
+  --color-danger-subtle: rgba(239, 68, 68, 0.14);
+
+  --font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* ─── Light Mode: Pure White & White Grey with Dark Charcoal Accents ─── */
+.light,
+:root[data-theme="light"] {
+  --bg-main: #ffffff;
+  --bg-surface: #fafafa;
+  --bg-surface-elevated: #f4f4f5;
+  --border-subtle: #e4e4e7;
+  --border-strong: #d4d4d8;
+
+  --text-primary: #09090b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a;
+
+  --btn-primary-bg: #09090b;
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: #27272a;
+
+  --btn-secondary-bg: #f4f4f5;
+  --btn-secondary-text: #09090b;
+  --btn-secondary-border: #e4e4e7;
+  --btn-secondary-hover: #e4e4e7;
+
+  --nav-active-bg: #f4f4f5;
+  --nav-active-text: #09090b;
+  --nav-active-border: #d4d4d8;
+
+  --badge-neutral-bg: #f4f4f5;
+  --badge-neutral-text: #09090b;
+  --badge-neutral-border: #e4e4e7;
+
+  --color-success: #10b981;
+  --color-success-subtle: rgba(16, 185, 129, 0.12);
+  --color-warning: #f59e0b;
+  --color-warning-subtle: rgba(245, 158, 11, 0.12);
+  --color-danger: #ef4444;
+  --color-danger-subtle: rgba(239, 68, 68, 0.12);
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+/* ── Card Shells ─────────────────────────────────────────────────────────── */
+.gen-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gen-card-hover:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.25);
+}
+
+.gen-card-interactive {
+  cursor: pointer;
+}
+
+.gen-card-interactive:hover {
+  border-color: var(--border-strong);
+}
+
+/* ── Badges ───────────────────────────────────────────────────────────────── */
+.badge-neutral {
+  background: var(--badge-neutral-bg);
+  color: var(--badge-neutral-text);
+  border: 1px solid var(--badge-neutral-border);
+}
+
+.badge-success {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.badge-warning {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.badge-danger {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* ── Buttons (Strictly Dark Charcoal / Dark Grey / Pure White / White Grey) ── */
+.btn-primary {
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+.btn-primary:hover {
+  background-color: var(--btn-primary-hover);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: 1px solid var(--btn-secondary-border);
+  font-weight: 500;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.15s ease;
+}
+.btn-secondary:hover {
+  background-color: var(--btn-secondary-hover);
+  border-color: var(--border-strong);
+}
+
+.btn-danger {
+  background-color: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.15s ease;
+}
+.btn-danger:hover {
+  background-color: var(--color-danger);
+  color: #ffffff;
+}
+
+/* ── Animations ───────────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -1,0 +1,179 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { z } from 'zod'
+
+const GeneratedQuestionSchema = z.object({
+  order: z.number(),
+  type: z.enum(['multiple-choice', 'true-false']),
+  question: z.string(),
+  options: z.array(z.string()),
+  correctAnswer: z.string(),
+  explanation: z.string(),
+})
+
+const GeneratedExamSchema = z.object({
+  title: z.string(),
+  subject: z.string(),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  description: z.string(),
+  tags: z.array(z.string()),
+  questions: z.array(GeneratedQuestionSchema),
+})
+
+export type GeneratedExam = z.infer<typeof GeneratedExamSchema>
+
+export const Route = createFileRoute('/api/exam/generate')({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        try {
+          const body = await request.json()
+          const {
+            topic,
+            subject,
+            difficulty = 'medium',
+            questionCount = 5,
+            questionTypes = ['multiple-choice'],
+          } = body
+
+          if (!topic || typeof topic !== 'string' || topic.trim().length === 0) {
+            return new Response(JSON.stringify({ error: 'Topic or question description is required.' }), {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            })
+          }
+
+          const count = Math.min(Math.max(Number(questionCount) || 5, 1), 30)
+
+          // Sanitize permitted question types (only multiple-choice and true-false)
+          const validTypes = ['multiple-choice', 'true-false'] as const
+          const filteredTypes = Array.isArray(questionTypes)
+            ? questionTypes.filter((t: string) => validTypes.includes(t as any))
+            : ['multiple-choice']
+          const activeTypes = filteredTypes.length > 0 ? filteredTypes : ['multiple-choice']
+          const typesDesc = activeTypes.join(', ')
+
+          const isAutoDetect = !subject || subject.trim() === '' || subject === 'Auto-Detect'
+          const cleanSubject = isAutoDetect ? '' : subject.trim()
+
+          const systemPrompt = `You are an expert academic test developer and curriculum designer.
+Generate an exam based on the user's topic or questions in strict JSON format.
+
+CRITICAL JSON SCHEMA REQUIREMENT:
+Your response must be a single valid JSON object with EXACTLY this structure:
+{
+  "title": "A concise, engaging title for the exam",
+  "subject": ${isAutoDetect ? '"Auto-detected subject name based on topic"' : `"${cleanSubject}"`},
+  "difficulty": "${difficulty}",
+  "description": "A 1-2 sentence overview of what this exam tests",
+  "tags": ["tag1", "tag2"],
+  "questions": [
+    {
+      "order": 1,
+      "type": "multiple-choice", // or "true-false"
+      "question": "The question text",
+      "options": ["Option A", "Option B", "Option C", "Option D"], // or ["True", "False"] if true-false
+      "correctAnswer": "The exact matching text of the correct option",
+      "explanation": "Clear, step-by-step reasoning explaining why this answer is correct"
+    }
+  ]
+}
+
+RULES:
+1. QUESTION COUNT: Generate EXACTLY ${count} questions.
+2. QUESTION FORMATS: Permitted formats are: [${typesDesc}]. ONLY use types from this permitted list.
+${
+  activeTypes.length > 1
+    ? `3. RANDOM MIX OF FORMATS: The user selected both formats (${typesDesc}). You MUST generate a random, well-distributed mix of multiple-choice and true-false questions across the ${count} questions. Do NOT make all questions of one type. Interleave them in random sequence throughout the exam.`
+    : `3. SINGLE FORMAT: All ${count} questions must be of type "${activeTypes[0]}".`
+}
+4. FORMAT SPECIFICATIONS:
+   - For "multiple-choice": "options" MUST be an array of exactly 4 distinct, plausible options. "correctAnswer" MUST match one option verbatim.
+   - For "true-false": "options" MUST be exactly ["True", "False"]. "correctAnswer" MUST be either "True" or "False".
+5. SUBJECT SPECIFICATION:
+${
+  isAutoDetect
+    ? `   - The user did not specify a subject. You MUST carefully analyze the user's detailed topic, concept, questions, or notes and automatically deduce the most fitting academic subject or discipline (e.g., "Computer Science", "Biochemistry", "Microeconomics", "Discrete Mathematics", "World History"). Set the "subject" field in the JSON response to your accurately detected subject name.`
+    : `   - The user explicitly specified the subject/category: "${cleanSubject}". You MUST contextualize the entire exam, question terminology, concepts, and conventions strictly within this subject/category. Set the "subject" field in the JSON response to "${cleanSubject}".`
+}
+6. DIFFICULTY: The difficulty is "${difficulty}". Ensure the problem depth, vocabulary, and conceptual challenge accurately match this level.
+7. Return ONLY pure JSON. No markdown backticks, no introduction, no conversational filler.`
+
+          const userPrompt = `DETAILED TOPIC / CONCEPT SPECIFICATION FROM USER:
+"""
+${topic.trim()}
+"""
+
+TARGET SPECIFICATIONS:
+- Target Subject / Category: ${isAutoDetect ? 'Auto-Detect from topic' : cleanSubject}
+- Target Difficulty: ${difficulty}
+- Total Questions: ${count}
+- Allowed Question Formats: ${typesDesc}
+
+Please generate the complete exam in the required JSON format.`
+
+          const groqApiKey = process.env.GROQ_API_KEY
+          const groqBaseUrl = process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1'
+
+          if (!groqApiKey) {
+            return new Response(
+              JSON.stringify({ error: 'GROQ_API_KEY is not configured on the server.' }),
+              { status: 500, headers: { 'Content-Type': 'application/json' } },
+            )
+          }
+
+          const groqResponse = await fetch(`${groqBaseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${groqApiKey}`,
+            },
+            body: JSON.stringify({
+              model: 'qwen/qwen3.8-27b',
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              response_format: { type: 'json_object' },
+              temperature: 0.6,
+            }),
+          })
+
+          if (!groqResponse.ok) {
+            const errText = await groqResponse.text()
+            console.error('Groq API error:', errText)
+            return new Response(
+              JSON.stringify({ error: 'Failed to generate exam with AI provider.' }),
+              { status: 502, headers: { 'Content-Type': 'application/json' } },
+            )
+          }
+
+          const groqData: any = await groqResponse.json()
+          const rawContent = groqData.choices?.[0]?.message?.content
+
+          if (!rawContent) {
+            return new Response(
+              JSON.stringify({ error: 'Empty response received from AI.' }),
+              { status: 502, headers: { 'Content-Type': 'application/json' } },
+            )
+          }
+
+          const parsed = JSON.parse(rawContent)
+          const validated = GeneratedExamSchema.parse(parsed)
+
+          return new Response(JSON.stringify(validated), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        } catch (error: any) {
+          console.error('Exam generation error:', error)
+          return new Response(
+            JSON.stringify({
+              error: error.message || 'An error occurred while generating the exam.',
+            }),
+            { status: 500, headers: { 'Content-Type': 'application/json' } },
+          )
+        }
+      },
+    },
+  },
+})

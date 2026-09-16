@@ -1,0 +1,33 @@
+{
+  "projectName": "ai-exam-gen",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "pnpm",
+  "includeExamples": true,
+  "tailwind": true,
+  "projectPreset": "default",
+  "addOnOptions": {
+    "drizzle": {
+      "database": "sqlite"
+    }
+  },
+  "git": false,
+  "install": false,
+  "intent": true,
+  "routerOnly": false,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": [
+    "biome",
+    "cloudflare",
+    "ai",
+    "drizzle",
+    "form",
+    "tanstack-query",
+    "better-auth",
+    "table",
+    "shadcn",
+    "oRPC",
+    "store"
+  ]
+}
