@@ -58,11 +58,11 @@ function AccountPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10 animate-fade-in space-y-8">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
+          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-[var(--text-primary)]">
             Account Details
           </h1>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
@@ -72,18 +72,18 @@ function AccountPage() {
       </div>
 
       {/* Main Identity Card */}
-      <div className="gen-card p-6 sm:p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="font-heading text-xl font-bold text-[var(--text-primary)]">
-                {accountName}
-              </h2>
-              {!isAnon && user?.email && (
-                <p className="text-xs text-[var(--text-secondary)] mt-1 font-mono">
-                  {user.email}
-                </p>
-              )}
-            </div>
+      <div className="gen-card p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div>
+            <h2 className="font-heading text-lg sm:text-xl font-bold text-[var(--text-primary)]">
+              {accountName}
+            </h2>
+            {!isAnon && user?.email && (
+              <p className="text-xs text-[var(--text-secondary)] mt-1 font-mono">
+                {user.email}
+              </p>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             {!isAnon ? (
@@ -108,7 +108,7 @@ function AccountPage() {
 
         {/* Anonymous Warning Card */}
         {isAnon && (
-          <div className="p-4 rounded-xl bg-[var(--color-warning-subtle)] border border-[var(--color-warning)]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-[var(--color-warning-subtle)] border border-[var(--color-warning)]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-start gap-2.5 min-w-0">
               <AlertTriangle className="h-4 w-4 text-[var(--color-warning)] shrink-0 mt-0.5" />
               <div className="min-w-0">
@@ -141,51 +141,51 @@ function AccountPage() {
           <span className="text-[11px] text-[var(--text-muted)]">Live Statistics</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="gen-card gen-card-hover p-5 relative overflow-hidden group">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-[var(--text-muted)] font-medium">Exams Created</span>
-              <div className="p-2 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] group-hover:border-[var(--border-strong)] transition-colors">
-                <BookOpen className="h-4 w-4 text-[var(--text-primary)]" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
+          <div className="gen-card gen-card-hover p-3.5 sm:p-5 relative overflow-hidden group">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <span className="text-[11px] sm:text-xs text-[var(--text-muted)] font-medium">Exams Created</span>
+              <div className="p-1.5 sm:p-2 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] group-hover:border-[var(--border-strong)] transition-colors">
+                <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-primary)]" />
               </div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <p className="font-heading text-3xl font-bold text-[var(--text-primary)]">
+            <div className="flex items-baseline gap-1.5 sm:gap-2">
+              <p className="font-heading text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
                 {stats.examsCreated}
               </p>
-              <span className="text-[11px] text-[var(--text-muted)]">total</span>
+              <span className="text-[10px] sm:text-[11px] text-[var(--text-muted)]">total</span>
             </div>
           </div>
 
-          <div className="gen-card gen-card-hover p-5 relative overflow-hidden group">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-[var(--text-muted)] font-medium">Completed Attempts</span>
-              <div className="p-2 rounded-xl bg-[var(--color-success-subtle)] border border-[var(--color-success)]/20 transition-colors">
-                <CheckCircle className="h-4 w-4 text-[var(--color-success)]" />
+          <div className="gen-card gen-card-hover p-3.5 sm:p-5 relative overflow-hidden group">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <span className="text-[11px] sm:text-xs text-[var(--text-muted)] font-medium">Completed Attempts</span>
+              <div className="p-1.5 sm:p-2 rounded-xl bg-[var(--color-success-subtle)] border border-[var(--color-success)]/20 transition-colors">
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--color-success)]" />
               </div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <p className="font-heading text-3xl font-bold text-[var(--text-primary)]">
+            <div className="flex items-baseline gap-1.5 sm:gap-2">
+              <p className="font-heading text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
                 {stats.examsTaken}
               </p>
-              <span className="text-[11px] text-[var(--text-muted)]">sessions</span>
+              <span className="text-[10px] sm:text-[11px] text-[var(--text-muted)]">sessions</span>
             </div>
           </div>
 
-          <div className="gen-card gen-card-hover p-5 relative overflow-hidden group">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-[var(--text-muted)] font-medium">Average Score</span>
-              <div className="p-2 rounded-xl bg-[var(--color-warning-subtle)] border border-[var(--color-warning)]/20 transition-colors">
-                <Award className="h-4 w-4 text-[var(--color-warning)]" />
+          <div className="gen-card gen-card-hover p-3.5 sm:p-5 relative overflow-hidden group col-span-2 sm:col-span-1">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <span className="text-[11px] sm:text-xs text-[var(--text-muted)] font-medium">Average Score</span>
+              <div className="p-1.5 sm:p-2 rounded-xl bg-[var(--color-warning-subtle)] border border-[var(--color-warning)]/20 transition-colors">
+                <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--color-warning)]" />
               </div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <p className="font-heading text-3xl font-bold text-[var(--text-primary)]">
+            <div className="flex items-baseline gap-1.5 sm:gap-2">
+              <p className="font-heading text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
                 {stats.averageScore}%
               </p>
-              <span className="text-[11px] text-[var(--text-muted)]">accuracy</span>
+              <span className="text-[10px] sm:text-[11px] text-[var(--text-muted)]">accuracy</span>
             </div>
-            <div className="w-full bg-[var(--bg-surface-elevated)] rounded-full h-1.5 mt-3 overflow-hidden border border-[var(--border-subtle)]">
+            <div className="w-full bg-[var(--bg-surface-elevated)] rounded-full h-1.5 mt-2.5 sm:mt-3 overflow-hidden border border-[var(--border-subtle)]">
               <div
                 className="h-full rounded-full transition-all duration-500 bg-[var(--color-warning)]"
                 style={{ width: `${Math.min(100, Math.max(0, stats.averageScore))}%` }}

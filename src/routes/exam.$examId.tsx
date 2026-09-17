@@ -123,7 +123,7 @@ function ExamDetailPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10 animate-fade-in space-y-8">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in space-y-6 sm:space-y-8">
       {/* Back button */}
       <Link
         to="/discover"
@@ -134,7 +134,7 @@ function ExamDetailPage() {
       </Link>
 
       {/* Main Header Card */}
-      <div className="gen-card p-6 sm:p-8 space-y-5 border-t-4 border-t-[var(--border-strong)]">
+      <div className="gen-card p-4 sm:p-8 space-y-4 sm:space-y-5 border-t-4 border-t-[var(--border-strong)]">
         <div className="flex flex-wrap items-center gap-2">
           <span className="px-2.5 py-0.5 rounded text-[11px] font-bold badge-neutral">
             {exam.subject}
@@ -155,7 +155,7 @@ function ExamDetailPage() {
           </span>
         </div>
 
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight">
+        <h1 className="font-heading text-xl sm:text-3xl font-bold text-[var(--text-primary)] leading-tight">
           {exam.title}
         </h1>
 
@@ -164,7 +164,7 @@ function ExamDetailPage() {
         </p>
 
         {/* Metadata grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3 border-t border-[var(--border-subtle)] text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-3 border-t border-[var(--border-subtle)] text-xs">
           <div className="flex items-center gap-2 text-[var(--text-secondary)]">
             <User className="h-4 w-4 text-[var(--text-muted)] shrink-0" />
             <span className="truncate">{exam.authorDisplayName}</span>
@@ -189,38 +189,27 @@ function ExamDetailPage() {
       </div>
 
       {/* Practice Launch Card */}
-      <div className="gen-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-l-4 border-l-[var(--border-strong)]">
+      <div className="gen-card p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-l-4 border-l-[var(--border-strong)]">
         <div>
-          <h2 className="text-base font-bold text-[var(--text-primary)]">
+          <h2 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
             Ready to test your knowledge?
           </h2>
           <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-            Configure question delivery and choose between instant feedback or full exam mode.
+            Configure your batch size and feedback preference to start.
           </p>
         </div>
 
         <button
-          type="button"
           onClick={() => setIsPracticeModalOpen(true)}
-          disabled={starting}
-          className="btn-primary px-6 py-2.5 text-xs flex items-center justify-center gap-2 font-semibold shadow-md cursor-pointer shrink-0"
+          className="w-full sm:w-auto btn-primary py-2.5 px-5 text-xs flex items-center justify-center gap-2 cursor-pointer font-semibold shadow-md shrink-0"
         >
-          {starting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Preparing Session...</span>
-            </>
-          ) : (
-            <>
-              <Play className="h-4 w-4 fill-current" />
-              <span>Start Practice</span>
-            </>
-          )}
+          <Play className="h-3.5 w-3.5 fill-current" />
+          <span>Launch Practice Session</span>
         </button>
       </div>
 
       {/* Questions Included Card */}
-      <div className="gen-card p-6 space-y-3.5 w-full min-w-0 overflow-hidden">
+      <div className="gen-card p-4 sm:p-6 space-y-3.5 w-full min-w-0 overflow-hidden">
         <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
           <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
             Questions Included ({questions.length})

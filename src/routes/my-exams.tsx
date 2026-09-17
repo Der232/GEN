@@ -90,11 +90,11 @@ function MyExamsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10 animate-fade-in space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
+          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-[var(--text-primary)]">
             My Generated Exams
           </h1>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
@@ -104,7 +104,7 @@ function MyExamsPage() {
 
         <Link
           to="/generate"
-          className="btn-primary text-xs self-start no-underline font-semibold px-4 py-2"
+          className="btn-primary text-xs self-start no-underline font-semibold px-3.5 sm:px-4 py-1.5 sm:py-2"
         >
           <span>New Exam</span>
         </Link>
@@ -117,7 +117,7 @@ function MyExamsPage() {
           <p className="text-xs text-[var(--text-secondary)]">Retrieving your exams...</p>
         </div>
       ) : exams.length === 0 ? (
-        <div className="gen-card p-12 text-center max-w-md mx-auto">
+        <div className="gen-card p-8 sm:p-12 text-center max-w-md mx-auto">
           <BookOpen className="h-8 w-8 text-[var(--text-muted)] mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-[var(--text-primary)]">No exams generated yet</h3>
           <p className="text-xs text-[var(--text-secondary)] mt-1 mb-5">
@@ -128,19 +128,20 @@ function MyExamsPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        /* App-Style 2-column Grid on Mobile, 2 on MD, 3 on LG */
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
           {exams.map((ex) => (
             <div
               key={ex.id}
-              className="gen-card gen-card-hover p-5 flex flex-col justify-between"
+              className="gen-card gen-card-hover p-3 sm:p-5 flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold badge-neutral">
+                <div className="flex items-center justify-between gap-1.5 mb-2">
+                  <span className="px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold badge-neutral truncate max-w-[80px] sm:max-w-none">
                     {ex.subject}
                   </span>
                   <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold capitalize ${
+                    className={`px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold capitalize shrink-0 ${
                       ex.difficulty === 'easy'
                         ? 'badge-success'
                         : ex.difficulty === 'medium'
@@ -155,41 +156,41 @@ function MyExamsPage() {
                 <Link
                   to="/exam/$examId"
                   params={{ examId: ex.id }}
-                  className="font-heading text-base font-bold text-[var(--text-primary)] mb-1.5 line-clamp-2 no-underline hover:underline cursor-pointer block"
+                  className="font-heading text-xs sm:text-base font-bold text-[var(--text-primary)] mb-1 sm:mb-1.5 line-clamp-2 no-underline hover:underline cursor-pointer block leading-snug"
                 >
                   {ex.title}
                 </Link>
 
-                <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mb-4 leading-relaxed">
+                <p className="text-[10px] sm:text-xs text-[var(--text-secondary)] line-clamp-2 mb-2.5 sm:mb-4 leading-relaxed">
                   {ex.description || 'Custom generated practice questions and explanations.'}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between">
-                <span className="text-[11px] text-[var(--text-muted)] font-medium">
-                  {ex.questionCount} Questions
+              <div className="pt-2 sm:pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between gap-1">
+                <span className="text-[10px] sm:text-[11px] text-[var(--text-muted)] font-medium truncate">
+                  {ex.questionCount}Q
                 </span>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                   <button
                     onClick={(e) => handleDelete(ex.id, e)}
                     disabled={deletingId === ex.id}
-                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-subtle)] transition-colors"
+                    className="p-1 sm:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-subtle)] transition-colors cursor-pointer"
                     title="Delete Exam"
                   >
                     {deletingId === ex.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                     ) : (
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     )}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setSelectedExamForPractice(ex)}
-                    className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5 font-semibold cursor-pointer"
+                    className="btn-primary text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1 font-semibold cursor-pointer shrink-0"
                   >
-                    <Play className="h-3 w-3 fill-current" />
+                    <Play className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-current" />
                     <span>Practice</span>
                   </button>
                 </div>

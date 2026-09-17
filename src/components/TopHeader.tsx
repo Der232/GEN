@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useSession, signOutAndResetToAnonymous } from '#/lib/auth-client'
 import { useUserStore } from '#/stores/useUserStore'
+import { useMobileNavStore } from '#/stores/useMobileNavStore'
 import {
   Sun,
   Moon,
@@ -9,6 +10,8 @@ import {
   LogOut,
   ChevronDown,
   Settings,
+  Menu,
+  X,
 } from 'lucide-react'
 import AuthModal, { type AuthModalView } from './AuthModal'
 
@@ -18,6 +21,10 @@ export default function TopHeader() {
   const isAnon = user ? Boolean(user.isAnonymous) : true
   const userName = user?.name || user?.displayName || 'Student'
   const userEmail = user?.email || ''
+
+  // Mobile nav state
+  const isMobileNavOpen = useMobileNavStore((s) => s.isOpen)
+  const toggleMobileNav = useMobileNavStore((s) => s.toggle)
 
   // Auth modal control
   const [authOpen, setAuthOpen] = useState(false)
@@ -93,11 +100,25 @@ export default function TopHeader() {
   return (
     <>
       <header className="flex h-14 w-full shrink-0 items-center justify-between bg-transparent border-none shadow-none px-4 sm:px-6">
-        {/* Left Side: Empty spacer */}
-        <div className="flex items-center pl-10 md:pl-0" />
+        {/* Left Side: Mobile Theme Toggle (<md) & Desktop empty spacer (>=md) */}
+        <div className="flex items-center">
+          <button
+            onClick={toggleTheme}
+            className="md:hidden flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] transition-all cursor-pointer shadow-sm"
+            title={theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode'}
+            aria-label="Toggle dark and light theme"
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-3.5 w-3.5 transition-transform hover:rotate-45" />
+            ) : (
+              <Moon className="h-3.5 w-3.5 transition-transform hover:-rotate-12" />
+            )}
+          </button>
+          <div className="hidden md:flex items-center md:pl-0" />
+        </div>
 
-        {/* Right Side: Sign In / First Name + Moon/Sun Theme Toggle */}
-        <div className="flex items-center gap-4">
+        {/* Right Side: Sign In / First Name + Desktop Theme Toggle + Mobile Hamburger */}
+        <div className="flex items-center gap-2.5 sm:gap-4">
           {/* ─── Case 1: Anonymous User — Show only "Sign In" ─── */}
           {isAnon ? (
             <button
@@ -126,7 +147,7 @@ export default function TopHeader() {
               {/* Compact User Dropdown Menu */}
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-52 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-1.5 shadow-2xl animate-modal-in z-50">
-                  {/* User details header (badge removed) */}
+                  {/* User details header */}
                   <div className="px-3 py-2 border-b border-[var(--border-subtle)]">
                     <p className="text-xs font-semibold text-[var(--text-primary)] truncate">
                       {userName}
@@ -138,7 +159,7 @@ export default function TopHeader() {
                     )}
                   </div>
 
-                  {/* Navigation Links (Account Details and Settings only) */}
+                  {/* Navigation Links */}
                   <div className="py-1">
                     <Link
                       to="/account"
@@ -173,10 +194,10 @@ export default function TopHeader() {
             </div>
           )}
 
-          {/* ─── Moon / Sun Theme Toggle ─── */}
+          {/* ─── Desktop Moon / Sun Theme Toggle (>=md) ─── */}
           <button
             onClick={toggleTheme}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] transition-all cursor-pointer shadow-sm"
+            className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] transition-all cursor-pointer shadow-sm"
             title={theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode'}
             aria-label="Toggle dark and light theme"
           >
@@ -185,6 +206,15 @@ export default function TopHeader() {
             ) : (
               <Moon className="h-3.5 w-3.5 transition-transform hover:-rotate-12" />
             )}
+          </button>
+
+          {/* ─── Mobile Hamburger Menu Button (Rightmost, <md) ─── */}
+          <button
+            onClick={toggleMobileNav}
+            className="md:hidden flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-elevated)] hover:border-[var(--border-strong)] transition-all cursor-pointer shadow-sm"
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileNavOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
         </div>
       </header>

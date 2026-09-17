@@ -495,10 +495,10 @@ function GeneratePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-10 animate-fade-in">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
+      <div className="mb-5 sm:mb-8">
+        <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-[var(--text-primary)]">
           Generate New Exam
         </h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
@@ -508,7 +508,7 @@ function GeneratePage() {
 
       {!result ? (
         /* ─── Generation Form ─── */
-        <form onSubmit={handleGenerate} className="gen-card p-6 sm:p-8 space-y-6">
+        <form onSubmit={handleGenerate} className="gen-card p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
           {/* Topic Input */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -538,7 +538,7 @@ function GeneratePage() {
 
             {/* Selected File UI ABOVE the main text input */}
             {selectedFile && (
-              <div className="mb-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] p-3.5 flex items-center justify-between gap-3 shadow-xs">
+              <div className="mb-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] p-2.5 sm:p-3.5 flex items-center justify-between gap-2.5 sm:gap-3 shadow-xs">
                 <div className="flex items-center gap-3 min-w-0">
                   {/* Circular Progress Indicator centered around/over the file icon */}
                   <div className="relative h-10 w-10 shrink-0 flex items-center justify-center">
@@ -749,7 +749,7 @@ function GeneratePage() {
                 {countOption === 'custom' ? `${customCount} Questions` : `${countOption} Questions`}
               </span>
             </div>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
               {(['5', '10', '15'] as const).map((num) => (
                 <button
                   key={num}
@@ -785,7 +785,7 @@ function GeneratePage() {
 
             {countOption === 'custom' && (
               <div className="mt-2.5 space-y-1">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <span className="text-xs text-[var(--text-secondary)]">Custom question count (1 – 30 max):</span>
                   <input
                     type="number"
@@ -808,7 +808,7 @@ function GeneratePage() {
                         setCustomCount(val)
                       }
                     }}
-                    className="w-20 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] px-3 py-1.5 text-xs sm:text-sm text-[var(--text-primary)] text-center focus:outline-none focus:border-[var(--border-strong)]"
+                    className="w-16 sm:w-20 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm text-[var(--text-primary)] text-center focus:outline-none focus:border-[var(--border-strong)]"
                   />
                 </div>
                 {customCount > 30 && (
@@ -900,8 +900,8 @@ function GeneratePage() {
         </form>
       ) : (
         /* ─── Generated Exam Preview ─── */
-        <div className="space-y-6">
-          <div className="gen-card p-6 border-l-4 border-l-[var(--border-strong)] flex flex-col gap-4">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="gen-card p-4 sm:p-6 border-l-4 border-l-[var(--border-strong)] flex flex-col gap-3.5 sm:gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold badge-neutral">
@@ -922,7 +922,7 @@ function GeneratePage() {
                   {result.questions.length} questions
                 </span>
               </div>
-              <h2 className="font-heading text-xl font-bold text-[var(--text-primary)]">
+              <h2 className="font-heading text-lg sm:text-xl font-bold text-[var(--text-primary)]">
                 {result.title}
               </h2>
               <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
@@ -931,12 +931,12 @@ function GeneratePage() {
             </div>
 
             {/* Quick CTA Actions below text */}
-            <div className="flex items-center gap-2.5 pt-3.5 border-t border-[var(--border-subtle)] flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-2.5 pt-3 sm:pt-3.5 border-t border-[var(--border-subtle)] flex-wrap">
               <button
                 type="button"
                 onClick={() => setResult(null)}
                 disabled={saving || isRegenerating}
-                className="btn-secondary px-3.5 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
+                className="btn-secondary px-3 sm:px-3.5 py-1.5 sm:py-2 text-xs flex items-center gap-1.5 cursor-pointer"
                 title="Edit parameters in form"
               >
                 <Edit3 className="h-3.5 w-3.5" />
@@ -946,7 +946,7 @@ function GeneratePage() {
                 type="button"
                 onClick={handleRegenerate}
                 disabled={saving || isRegenerating}
-                className="btn-secondary px-3.5 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
+                className="btn-secondary px-3 sm:px-3.5 py-1.5 sm:py-2 text-xs flex items-center gap-1.5 cursor-pointer"
                 title="Regenerate fresh questions in place"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isRegenerating ? 'animate-spin' : ''}`} />
@@ -956,7 +956,7 @@ function GeneratePage() {
                 type="button"
                 onClick={handleSaveToLibrary}
                 disabled={saving || isRegenerating}
-                className="btn-secondary px-4 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
+                className="btn-secondary px-3 sm:px-4 py-1.5 sm:py-2 text-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <Bookmark className="h-3.5 w-3.5" />
                 <span>Save to Library</span>
@@ -965,7 +965,7 @@ function GeneratePage() {
                 type="button"
                 onClick={() => setIsPracticeModalOpen(true)}
                 disabled={saving || isRegenerating}
-                className="btn-primary px-5 py-2 text-xs flex items-center gap-1.5 cursor-pointer font-semibold shadow-sm"
+                className="btn-primary px-4 sm:px-5 py-1.5 sm:py-2 text-xs flex items-center gap-1.5 cursor-pointer font-semibold shadow-sm"
               >
                 <Play className="h-3.5 w-3.5 fill-current" />
                 <span>Start Practice</span>

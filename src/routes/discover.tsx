@@ -97,11 +97,11 @@ function DiscoverPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10 animate-fade-in">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in">
       {/* Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="mb-5 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
+          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-[var(--text-primary)]">
             Discover Public Exams
           </h1>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
@@ -109,14 +109,14 @@ function DiscoverPage() {
           </p>
         </div>
 
-        <Link to="/generate" className="btn-primary self-start text-xs no-underline px-4 py-2">
+        <Link to="/generate" className="btn-primary self-start text-xs no-underline px-3.5 sm:px-4 py-1.5 sm:py-2">
           <span>Create an Exam</span>
         </Link>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="space-y-3 mb-8">
-        <div className="flex flex-col sm:flex-row items-center gap-3">
+      <div className="space-y-3 mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 sm:gap-3">
           {/* Search Input */}
           <div className="relative flex-1 w-full">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
@@ -125,7 +125,7 @@ function DiscoverPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by topic, keyword, or concept..."
-              className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] pl-10 pr-4 py-2.5 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--border-strong)] transition"
+              className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--border-strong)] transition"
             />
           </div>
 
@@ -135,7 +135,7 @@ function DiscoverPage() {
             <select
               value={selectedDifficulty}
               onChange={(e) => setSelectedDifficulty(e.target.value)}
-              className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--border-strong)]"
+              className="w-full sm:w-auto rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--border-strong)]"
             >
               <option value="All">All Difficulties</option>
               <option value="easy">Easy</option>
@@ -152,7 +152,7 @@ function DiscoverPage() {
               key={subj}
               onClick={() => setSelectedSubject(subj)}
               className={`
-                px-3 py-1.5 rounded-lg whitespace-nowrap transition-all text-xs font-medium cursor-pointer border
+                px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg whitespace-nowrap transition-all text-xs font-medium cursor-pointer border
                 ${
                   selectedSubject === subj
                     ? 'btn-primary font-semibold'
@@ -173,7 +173,7 @@ function DiscoverPage() {
           <p className="text-xs text-[var(--text-secondary)]">Loading community exams...</p>
         </div>
       ) : filteredExams.length === 0 ? (
-        <div className="gen-card p-12 text-center max-w-md mx-auto my-8">
+        <div className="gen-card p-8 sm:p-12 text-center max-w-md mx-auto my-6 sm:my-8">
           <Compass className="h-8 w-8 text-[var(--text-muted)] mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-[var(--text-primary)]">No exams found</h3>
           <p className="text-xs text-[var(--text-secondary)] mt-1 mb-4">
@@ -187,20 +187,21 @@ function DiscoverPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        /* App-Style 2-column Grid on Mobile, 2 on MD, 3 on LG */
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
           {filteredExams.map((ex) => (
             <div
               key={ex.id}
               onClick={() => setSelectedExamForPractice(ex)}
-              className="gen-card gen-card-hover p-5 flex flex-col justify-between group cursor-pointer transition-all"
+              className="gen-card gen-card-hover p-3 sm:p-5 flex flex-col justify-between group cursor-pointer transition-all"
             >
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2.5">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold badge-neutral">
+                <div className="flex items-center justify-between gap-1.5 mb-2 sm:mb-2.5">
+                  <span className="px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold badge-neutral truncate max-w-[80px] sm:max-w-none">
                     {ex.subject}
                   </span>
                   <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold capitalize ${
+                    className={`px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold capitalize shrink-0 ${
                       ex.difficulty === 'easy'
                         ? 'badge-success'
                         : ex.difficulty === 'medium'
@@ -212,21 +213,21 @@ function DiscoverPage() {
                   </span>
                 </div>
 
-                <h3 className="font-heading text-base font-bold text-[var(--text-primary)] mb-1.5 line-clamp-2 group-hover:underline">
+                <h3 className="font-heading text-xs sm:text-base font-bold text-[var(--text-primary)] mb-1 sm:mb-1.5 line-clamp-2 group-hover:underline leading-snug">
                   {ex.title}
                 </h3>
 
-                <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mb-4 leading-relaxed">
+                <p className="text-[10px] sm:text-xs text-[var(--text-secondary)] line-clamp-2 mb-2.5 sm:mb-4 leading-relaxed">
                   {ex.description || 'Comprehensive test questions covering core concepts and problem solving.'}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
-                  <User className="h-3 w-3" />
-                  <span className="truncate max-w-[110px]">{ex.authorDisplayName}</span>
+              <div className="pt-2 sm:pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between gap-1">
+                <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-[var(--text-muted)] min-w-0">
+                  <User className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0" />
+                  <span className="truncate max-w-[55px] sm:max-w-[110px]">{ex.authorDisplayName}</span>
                   <span>·</span>
-                  <span>{ex.questionCount}Q</span>
+                  <span className="shrink-0">{ex.questionCount}Q</span>
                 </div>
 
                 <button
@@ -235,9 +236,9 @@ function DiscoverPage() {
                     e.stopPropagation()
                     setSelectedExamForPractice(ex)
                   }}
-                  className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1 font-semibold cursor-pointer"
+                  className="btn-primary text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1 font-semibold cursor-pointer shrink-0"
                 >
-                  <Play className="h-3 w-3 fill-current" />
+                  <Play className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-current" />
                   <span>Practice</span>
                 </button>
               </div>

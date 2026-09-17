@@ -234,38 +234,38 @@ function ResultsPage() {
   const isPassing = score >= 70
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10 animate-fade-in space-y-8">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in space-y-6 sm:space-y-8">
       {/* ── Score Summary Card ── */}
-      <div className="gen-card p-6 sm:p-8 text-center relative overflow-hidden">
+      <div className="gen-card p-4 sm:p-8 text-center relative overflow-hidden">
         <div className="max-w-md mx-auto">
           <div
-            className={`inline-flex items-center justify-center h-16 w-16 rounded-2xl mb-4 ${
+            className={`inline-flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl mb-3 sm:mb-4 ${
               isPassing ? 'badge-success' : 'badge-danger'
             }`}
           >
-            <Award className="h-8 w-8" />
+            <Award className="h-6 w-6 sm:h-8 sm:w-8" />
           </div>
 
           <div className="flex items-center justify-center gap-2 mb-1">
             <span className="px-2 py-0.5 rounded text-[10px] font-bold badge-neutral">
               {subject}
             </span>
-            <span className="text-xs text-[var(--text-muted)]">{examTitle}</span>
+            <span className="text-xs text-[var(--text-muted)] truncate max-w-[200px] sm:max-w-none">{examTitle}</span>
           </div>
 
-          <h1 className="font-heading text-4xl sm:text-5xl font-bold text-[var(--text-primary)] mb-2">
+          <h1 className="font-heading text-3xl sm:text-5xl font-bold text-[var(--text-primary)] mb-1 sm:mb-2">
             {score}%
           </h1>
 
-          <p className="text-xs sm:text-sm text-[var(--text-secondary)] mb-6">
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] mb-4 sm:mb-6">
             {isPassing
               ? 'Great mastery! You demonstrated strong comprehension of the core concepts.'
               : 'Keep practicing! Review the questions you missed below with the AI tutor.'}
           </p>
 
           {/* Quick Metrics */}
-          <div className="grid grid-cols-2 gap-3 mb-6 max-w-xs mx-auto">
-            <div className="p-3 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-center">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6 max-w-xs mx-auto">
+            <div className="p-2.5 sm:p-3 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-center">
               <div className="text-sm font-bold text-[var(--color-success)] flex items-center justify-center gap-1">
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 <span>{attempt?.correctCount || 0}</span>
@@ -273,7 +273,7 @@ function ResultsPage() {
               <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Correct</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-center">
+            <div className="p-2.5 sm:p-3 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-center">
               <div className="text-sm font-bold text-[var(--color-danger)] flex items-center justify-center gap-1">
                 <XCircle className="h-3.5 w-3.5" />
                 <span>{wrongQuestions.length}</span>
@@ -283,17 +283,17 @@ function ResultsPage() {
           </div>
 
           {/* Action CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={handleRetry}
-              className="btn-primary px-5 py-2.5 text-xs flex items-center gap-2 cursor-pointer font-semibold"
+              className="w-full sm:w-auto btn-primary px-4 sm:px-5 py-2.5 text-xs flex items-center justify-center gap-2 cursor-pointer font-semibold"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               <span>Retry This Exam</span>
             </button>
             <Link
               to="/discover"
-              className="btn-secondary px-5 py-2.5 text-xs no-underline font-medium"
+              className="w-full sm:w-auto btn-secondary px-4 sm:px-5 py-2.5 text-xs no-underline font-medium text-center"
             >
               Explore More Exams
             </Link>
@@ -314,11 +314,11 @@ function ResultsPage() {
           </div>
 
           {/* Quick Filter Tabs */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] self-start sm:self-auto">
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] self-start sm:self-auto overflow-x-auto max-w-full no-scrollbar">
             <button
               type="button"
               onClick={() => setFilter('all')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer shrink-0 ${
                 filter === 'all'
                   ? 'btn-primary font-bold shadow-xs'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
@@ -329,38 +329,37 @@ function ResultsPage() {
             <button
               type="button"
               onClick={() => setFilter('incorrect')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer shrink-0 ${
                 filter === 'incorrect'
                   ? 'btn-primary font-bold shadow-xs'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
-              <span>Missed ({wrongQuestions.length})</span>
+              Missed ({wrongQuestions.length})
             </button>
             <button
               type="button"
               onClick={() => setFilter('correct')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer shrink-0 ${
                 filter === 'correct'
                   ? 'btn-primary font-bold shadow-xs'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
-              <span>Correct ({correctQuestions.length})</span>
+              Correct ({attempt?.correctCount || 0})
             </button>
           </div>
         </div>
 
         {displayedQuestions.length === 0 ? (
-          <div className="gen-card p-8 text-center">
-            <CheckCircle2 className="h-10 w-10 text-[var(--color-success)] mx-auto mb-2" />
-            <h3 className="text-sm font-semibold text-[var(--text-primary)]">No questions in this filter</h3>
-            <p className="text-xs text-[var(--text-secondary)] mt-1">
-              Select "All ({questions.length})" to view every question in this exam.
+          <div className="gen-card p-8 sm:p-12 text-center">
+            <CheckCircle2 className="h-8 w-8 text-[var(--color-success)] mx-auto mb-2" />
+            <p className="text-xs text-[var(--text-muted)]">
+              No questions in this filter view.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {displayedQuestions.map((q) => {
               const a = answersMap[q.id]
               const isCorrect = a?.isCorrect ?? false
@@ -370,7 +369,7 @@ function ResultsPage() {
               return (
                 <div
                   key={q.id}
-                  className={`gen-card p-6 space-y-4 border-l-4 ${
+                  className={`gen-card p-4 sm:p-6 space-y-3.5 sm:space-y-4 border-l-4 ${
                     isCorrect
                       ? 'border-l-[var(--color-success)]'
                       : 'border-l-[var(--color-danger)]'

@@ -222,9 +222,9 @@ function PracticePage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8 animate-fade-in space-y-6">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-5 sm:py-8 animate-fade-in space-y-4 sm:space-y-6">
       {/* Top Bar: Progress and Metadata */}
-      <div className="gen-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="gen-card p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2 py-0.5 rounded text-[10px] font-bold badge-neutral">
@@ -234,7 +234,7 @@ function PracticePage() {
               Batch {currentBatchIndex + 1} of {totalBatches}
             </span>
           </div>
-          <h1 className="font-heading text-lg sm:text-xl font-bold text-[var(--text-primary)] truncate max-w-lg">
+          <h1 className="font-heading text-base sm:text-xl font-bold text-[var(--text-primary)] truncate max-w-lg">
             {examTitle}
           </h1>
         </div>
@@ -285,12 +285,12 @@ function PracticePage() {
           const isQuestionLocked = isInstantMode && Boolean(selectedAnswer)
 
           return (
-            <div key={q.id} className="gen-card p-6 space-y-4">
-              <div className="flex items-start gap-3">
-                <span className="h-6 w-6 rounded-full bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 border border-[var(--border-strong)]">
+            <div key={q.id} className="gen-card p-4 sm:p-6 space-y-3.5 sm:space-y-4">
+              <div className="flex items-start gap-2.5 sm:gap-3">
+                <span className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] text-[11px] sm:text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 border border-[var(--border-strong)]">
                   {globalNumber}
                 </span>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider block">
                       {q.type.replace('-', ' ')}
@@ -302,7 +302,7 @@ function PracticePage() {
                       </span>
                     )}
                   </div>
-                  <h2 className="text-sm sm:text-base font-semibold text-[var(--text-primary)] leading-snug">
+                  <h2 className="text-xs sm:text-base font-semibold text-[var(--text-primary)] leading-snug">
                     {q.question}
                   </h2>
                 </div>
@@ -310,7 +310,7 @@ function PracticePage() {
 
               {/* Multiple Choice Options */}
               {q.type === 'multiple-choice' && q.options && (
-                <div className="grid gap-2.5 pt-2 pl-9">
+                <div className="grid gap-2 sm:gap-2.5 pt-1 sm:pt-2 pl-0 sm:pl-9">
                   {q.options.map((opt, oIdx) => {
                     const isSelected = selectedAnswer === opt
                     const isCorrectAnswer = opt.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase()
@@ -341,11 +341,11 @@ function PracticePage() {
                             handleSelectAnswer(q.id, opt)
                           }
                         }}
-                        className={`w-full p-3.5 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between text-left transition-all ${
+                        className={`w-full p-2.5 sm:p-3.5 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between text-left transition-all ${
                           isQuestionLocked ? 'cursor-default' : 'cursor-pointer'
                         } ${buttonClass}`}
                       >
-                        <span className="pr-3">{opt}</span>
+                        <span className="pr-2 sm:pr-3">{opt}</span>
                         <div className="shrink-0 flex items-center gap-1.5">
                           {isInstantMode && selectedAnswer && isSelected && (
                             isCorrectAnswer ? (
@@ -363,8 +363,8 @@ function PracticePage() {
                             <div
                               className={`h-4 w-4 rounded-full border flex items-center justify-center ${
                                 isSelected
-                                  ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-main)]'
-                                  : 'border-[var(--border-strong)]'
+                                ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-main)]'
+                                : 'border-[var(--border-strong)]'
                               }`}
                             >
                               {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-[var(--bg-main)]" />}
@@ -379,7 +379,7 @@ function PracticePage() {
 
               {/* True / False Options */}
               {q.type === 'true-false' && (
-                <div className="grid grid-cols-2 gap-3 pt-2 pl-9">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-1 sm:pt-2 pl-0 sm:pl-9">
                   {['True', 'False'].map((val) => {
                     const isSelected = selectedAnswer.toLowerCase() === val.toLowerCase()
                     const isCorrectAnswer = val.toLowerCase() === q.correctAnswer.toLowerCase()
@@ -410,7 +410,7 @@ function PracticePage() {
                             handleSelectAnswer(q.id, val)
                           }
                         }}
-                        className={`py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all text-center border flex items-center justify-center gap-2 ${
+                        className={`py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all text-center border flex items-center justify-center gap-2 ${
                           isQuestionLocked ? 'cursor-default' : 'cursor-pointer'
                         } ${buttonClass}`}
                       >
@@ -430,7 +430,7 @@ function PracticePage() {
 
               {/* Short Answer Input */}
               {q.type === 'short-answer' && (
-                <div className="pt-2 pl-9">
+                <div className="pt-1 sm:pt-2 pl-0 sm:pl-9">
                   <textarea
                     rows={2}
                     value={selectedAnswer}
@@ -522,8 +522,8 @@ function PracticePage() {
       </div>
 
       {/* Bottom Actions Bar */}
-      <div className="pt-4 flex items-center justify-between gap-4">
-        <p className="text-xs text-[var(--text-muted)]">
+      <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+        <p className="text-[11px] sm:text-xs text-[var(--text-muted)]">
           {!allCurrentAnswered ? (
             <span className="text-[var(--color-warning)] font-medium">
               Please answer all questions in this batch before advancing.
@@ -538,7 +538,7 @@ function PracticePage() {
         <button
           onClick={handleAdvance}
           disabled={!allCurrentAnswered || submitting}
-          className="btn-primary py-3 px-6 text-xs sm:text-sm font-semibold flex items-center gap-2 cursor-pointer disabled:opacity-50 ml-auto shadow-md"
+          className="w-full sm:w-auto btn-primary py-2.5 sm:py-3 px-4 sm:px-6 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ml-auto shadow-md"
         >
           {submitting ? (
             <>
