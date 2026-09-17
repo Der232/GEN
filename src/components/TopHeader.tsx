@@ -92,8 +92,8 @@ export default function TopHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 w-full shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-main)]/80 px-4 sm:px-6 backdrop-blur-md transition-colors">
-        {/* Left Side: Empty spacer (badge and kind bar removed) */}
+      <header className="flex h-14 w-full shrink-0 items-center justify-between bg-transparent border-none shadow-none px-4 sm:px-6">
+        {/* Left Side: Empty spacer */}
         <div className="flex items-center pl-10 md:pl-0" />
 
         {/* Right Side: Sign In / First Name + Moon/Sun Theme Toggle */}
