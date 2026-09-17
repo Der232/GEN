@@ -104,50 +104,38 @@ function AccountPage() {
               </button>
             ) : (
               <button
-                onClick={() => openAuthFlow('choice', true)}
+                onClick={() => openAuthFlow('signup', false)}
                 className="btn-primary px-3.5 py-2 text-xs flex items-center gap-1.5 font-semibold cursor-pointer shadow-sm"
               >
                 <ShieldCheck className="h-3.5 w-3.5" />
-                <span>Account Options</span>
+                <span>Create Account</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Anonymous Warning Card with Link Account & Create Account options */}
+        {/* Anonymous Warning Card */}
         {isAnon && (
-          <div className="p-4 sm:p-5 rounded-2xl bg-[var(--color-warning-subtle)] border border-[var(--color-warning)]/25 space-y-3">
-            <div className="flex items-start gap-3">
+          <div className="p-4 rounded-xl bg-[var(--color-warning-subtle)] border border-[var(--color-warning)]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-2.5 min-w-0">
               <AlertTriangle className="h-4 w-4 text-[var(--color-warning)] shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <h4 className="text-xs font-bold text-[var(--color-warning)] uppercase tracking-wider">
-                  You are signed in as an anonymous user
+              <div className="min-w-0">
+                <h4 className="text-xs font-bold text-[var(--color-warning)]">
+                  Anonymous Session
                 </h4>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                  Your exams and attempts are saved to this browser session. You can link this session
-                  to preserve your progress, or create a completely fresh standalone account.
+                <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+                  Exams and history are saved to this browser. Link your account to sync across devices.
                 </p>
               </div>
             </div>
 
-            {/* Clear Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1 pl-7">
-              <button
-                onClick={() => openAuthFlow('signup', true)}
-                className="btn-primary px-3.5 py-2 text-xs flex items-center justify-center gap-1.5 font-semibold cursor-pointer shadow-sm"
-              >
-                <Link2 className="h-3.5 w-3.5" />
-                <span>Link Account (Keep Data)</span>
-              </button>
-
-              <button
-                onClick={() => openAuthFlow('signup', false)}
-                className="btn-secondary px-3.5 py-2 text-xs flex items-center justify-center gap-1.5 font-medium cursor-pointer"
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                <span>Create Standalone Account</span>
-              </button>
-            </div>
+            <button
+              onClick={() => openAuthFlow('signup', true)}
+              className="btn-primary px-3.5 py-1.5 text-xs flex items-center justify-center gap-1.5 font-semibold shrink-0 cursor-pointer shadow-sm"
+            >
+              <Link2 className="h-3.5 w-3.5" />
+              <span>Link Account</span>
+            </button>
           </div>
         )}
       </div>
