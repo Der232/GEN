@@ -25,3 +25,17 @@ export function useSession() {
 }
 
 export type Session = typeof authClient.$Infer.Session
+
+export async function signOutAndResetToAnonymous() {
+  try {
+    await authClient.signOut()
+  } catch (err) {
+    console.warn('Sign out error:', err)
+  }
+
+  try {
+    await authClient.signIn.anonymous()
+  } catch (err) {
+    console.warn('Failed to provision new anonymous session:', err)
+  }
+}

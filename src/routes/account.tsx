@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import { authClient, useSession } from '#/lib/auth-client'
+import { authClient, useSession, signOutAndResetToAnonymous } from '#/lib/auth-client'
 import {
   ShieldCheck,
   Award,
@@ -12,8 +12,10 @@ import {
   Plus,
   Compass,
   Target,
+  Link2,
+  UserPlus,
 } from 'lucide-react'
-import AuthModal from '#/components/AuthModal'
+import AuthModal, { type AuthModalView } from '#/components/AuthModal'
 import { useExamPerformanceStore } from '#/stores/useExamPerformanceStore'
 import { useUserStore } from '#/stores/useUserStore'
 
@@ -28,6 +30,8 @@ interface UserStats {
 function AccountPage() {
   const { data: session } = useSession()
   const [authOpen, setAuthOpen] = useState(false)
+  const [authView, setAuthView] = useState<AuthModalView>('choice')
+  const [authLinkMode, setAuthLinkMode] = useState(true)
   const { stats, fetchUserMe } = useUserStore()
   const performance = useExamPerformanceStore()
 
@@ -40,6 +44,18 @@ function AccountPage() {
   useEffect(() => {
     fetchUserMe()
   }, [session, fetchUserMe])
+
+  const openAuthFlow = (view: AuthModalView, linkMode: boolean) => {
+    setAuthView(view)
+    setAuthLinkMode(linkMode)
+    setAuthOpen(true)
+  }
+
+  const handleSignOut = async () => {
+    await signOutAndResetToAnonymous()
+    useUserStore.getState().clearUser()
+    await useUserStore.getState().invalidateAndRefresh()
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10 animate-fade-in space-y-8">
@@ -55,7 +71,7 @@ function AccountPage() {
         </div>
       </div>
 
-      {/* Main Identity Card (no "A" avatar box, no anonymous badge) */}
+      {/* Main Identity Card */}
       <div className="gen-card p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -80,35 +96,57 @@ function AccountPage() {
           <div className="flex items-center gap-2">
             {!isAnon ? (
               <button
-                onClick={() => authClient.signOut()}
+                onClick={handleSignOut}
                 className="btn-secondary px-3.5 py-2 text-xs flex items-center gap-1.5 font-medium cursor-pointer"
               >
-                <LogOut className="h-3.5 w-3.5" />
+                <LogOut className="h-3.5 w-3.5 text-[var(--color-danger)]" />
                 <span>Sign Out</span>
               </button>
             ) : (
               <button
-                onClick={() => setAuthOpen(true)}
+                onClick={() => openAuthFlow('choice', true)}
                 className="btn-primary px-3.5 py-2 text-xs flex items-center gap-1.5 font-semibold cursor-pointer shadow-sm"
               >
                 <ShieldCheck className="h-3.5 w-3.5" />
-                <span>Create Account</span>
+                <span>Account Options</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Anonymous Warning Card with preserved warning styling */}
+        {/* Anonymous Warning Card with Link Account & Create Account options */}
         {isAnon && (
-          <div className="p-4 rounded-xl bg-[var(--color-warning-subtle)] border border-[var(--color-warning)]/30 flex items-start gap-3">
-            <AlertTriangle className="h-4 w-4 text-[var(--color-warning)] shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <h4 className="text-xs font-semibold text-[var(--color-warning)] uppercase tracking-wider">
-                You are signed in as an anonymous user
-              </h4>
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                Data is saved to this device. Register an account anytime to sync your exams and history across devices.
-              </p>
+          <div className="p-4 sm:p-5 rounded-2xl bg-[var(--color-warning-subtle)] border border-[var(--color-warning)]/25 space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-4 w-4 text-[var(--color-warning)] shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-[var(--color-warning)] uppercase tracking-wider">
+                  You are signed in as an anonymous user
+                </h4>
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                  Your exams and attempts are saved to this browser session. You can link this session
+                  to preserve your progress, or create a completely fresh standalone account.
+                </p>
+              </div>
+            </div>
+
+            {/* Clear Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1 pl-7">
+              <button
+                onClick={() => openAuthFlow('signup', true)}
+                className="btn-primary px-3.5 py-2 text-xs flex items-center justify-center gap-1.5 font-semibold cursor-pointer shadow-sm"
+              >
+                <Link2 className="h-3.5 w-3.5" />
+                <span>Link Account (Keep Data)</span>
+              </button>
+
+              <button
+                onClick={() => openAuthFlow('signup', false)}
+                className="btn-secondary px-3.5 py-2 text-xs flex items-center justify-center gap-1.5 font-medium cursor-pointer"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                <span>Create Standalone Account</span>
+              </button>
             </div>
           </div>
         )}
@@ -252,7 +290,12 @@ function AccountPage() {
         </div>
       </div>
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        initialView={authView}
+        initialLinkMode={authLinkMode}
+      />
     </div>
   )
 }

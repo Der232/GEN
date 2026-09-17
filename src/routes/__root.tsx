@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
+import TopHeader from '../components/TopHeader'
 import { authClient, useSession } from '../lib/auth-client'
 
 import appCss from '../styles.css?url'
@@ -47,9 +48,12 @@ function AppShell() {
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--bg-main)] text-[var(--text-primary)]">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto min-w-0">
-        <Outlet />
-      </main>
+      <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
+        <TopHeader />
+        <main className="flex-1 overflow-y-auto min-w-0">
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }

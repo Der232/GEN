@@ -145,7 +145,11 @@ export default function Sidebar() {
 
           {/* User Profile Pill */}
           {(!collapsed || mobileOpen) && (
-            <div className="mt-2 pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2 px-1">
+            <Link
+              to="/account"
+              onClick={() => setMobileOpen(false)}
+              className="mt-2 pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2 px-1 hover:opacity-80 transition-opacity no-underline"
+            >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="h-6 w-6 rounded-md bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-secondary)] shrink-0">
                   <User className="h-3.5 w-3.5" />
@@ -154,14 +158,18 @@ export default function Sidebar() {
                   <p className="text-[11px] font-semibold text-[var(--text-primary)] truncate">
                     {accountName}
                   </p>
-                  {!isAnon && user?.email && (
+                  {!isAnon && user?.email ? (
                     <p className="text-[9px] text-[var(--text-muted)] truncate font-mono">
                       {user.email}
+                    </p>
+                  ) : (
+                    <p className="text-[9px] text-[var(--color-warning)] truncate font-medium">
+                      Anonymous
                     </p>
                   )}
                 </div>
               </div>
-            </div>
+            </Link>
           )}
         </div>
       </aside>
