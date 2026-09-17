@@ -14,6 +14,9 @@ import {
   FileCode,
   X,
   RefreshCw,
+  EyeOff,
+  Sliders,
+  Edit3,
 } from 'lucide-react'
 import { useUserStore } from '#/stores/useUserStore'
 
@@ -64,7 +67,7 @@ function GeneratePage() {
   const [subjectOption, setSubjectOption] = useState('Auto-Detect (AI)')
   const [customSubject, setCustomSubject] = useState('')
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
-  const [countOption, setCountOption] = useState<'5' | '10' | '15' | 'custom'>('5')
+  const [countOption, setCountOption] = useState<'5' | '10' | '15' | '20' | '25' | '30' | 'custom'>('5')
   const [customCount, setCustomCount] = useState<number>(8)
   const [questionTypes, setQuestionTypes] = useState<string[]>(['multiple-choice'])
 
@@ -85,9 +88,16 @@ function GeneratePage() {
 
   // Status states
   const [loading, setLoading] = useState(false)
+  const [isRegenerating, setIsRegenerating] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<GeneratedExamResult | null>(null)
+  const [savedExamId, setSavedExamId] = useState<string | null>(null)
+
+  // Practice launch modal states
+  const [isPracticeModalOpen, setIsPracticeModalOpen] = useState(false)
+  const [practiceBatch, setPracticeBatch] = useState<'all' | '5' | '1'>('all')
+  const [practiceMode, setPracticeMode] = useState<'instant' | 'exam'>('instant')
 
   const getFileType = (name: string): 'pdf' | 'pptx' | 'docx' | null => {
     const ext = name.split('.').pop()?.toLowerCase()
@@ -338,13 +348,53 @@ function GeneratePage() {
     }
   }
 
-  const handleSaveAndAction = async (action: 'practice' | 'list') => {
+  const handleRegenerate = async () => {
+    setIsRegenerating(true)
+    setError(null)
+    setSavedExamId(null)
+
+    const effectiveSubject =
+      subjectOption === 'Custom Subject / Category...'
+        ? customSubject.trim()
+        : subjectOption === 'Auto-Detect (AI)'
+        ? 'Auto-Detect'
+        : subjectOption
+
+    const effectiveCount = countOption === 'custom' ? customCount : Number(countOption)
+
+    try {
+      const res = await fetch('/api/exam/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: topic.trim(),
+          subject: effectiveSubject,
+          difficulty,
+          questionCount: effectiveCount,
+          questionTypes,
+          documentId: uploadedDocId || null,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to regenerate exam.')
+      }
+
+      setResult(data)
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during regeneration.')
+    } finally {
+      setIsRegenerating(false)
+    }
+  }
+
+  const handleSaveToLibrary = async () => {
     if (!result) return
     setSaving(true)
     setError(null)
 
     try {
-      // 1. Save exam to DB
       const saveRes = await fetch('/api/exams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -364,30 +414,68 @@ function GeneratePage() {
       const saveData = await saveRes.json()
       if (!saveRes.ok) throw new Error(saveData.error || 'Failed to save exam.')
 
+      setSavedExamId(saveData.examId)
       // Invalidate and refresh database metrics in Zustand
       await useUserStore.getState().invalidateAndRefresh().catch(() => {})
 
-      const examId = saveData.examId
-
-      if (action === 'practice') {
-        // 2. Start attempt and redirect to practice
-        const attRes = await fetch('/api/attempts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ examId }),
-        })
-        const attData = await attRes.json()
-        if (!attRes.ok) throw new Error(attData.error || 'Failed to start attempt.')
-
-        navigate({
-          to: '/practice/$attemptId',
-          params: { attemptId: attData.attemptId },
-        })
-      } else {
-        navigate({ to: '/my-exams' })
-      }
+      navigate({ to: '/my-exams' })
     } catch (err: any) {
       setError(err.message || 'Failed to save exam.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleStartPractice = async () => {
+    if (!result) return
+    setSaving(true)
+    setError(null)
+
+    try {
+      let examId = savedExamId
+      if (!examId) {
+        const saveRes = await fetch('/api/exams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            exam: {
+              title: result.title,
+              subject: result.subject,
+              description: result.description,
+              difficulty: result.difficulty,
+              tags: result.tags,
+              documentId: result.documentId || uploadedDocId || null,
+            },
+            questions: result.questions,
+          }),
+        })
+
+        const saveData = await saveRes.json()
+        if (!saveRes.ok) throw new Error(saveData.error || 'Failed to save exam.')
+        examId = saveData.examId
+        setSavedExamId(examId)
+        await useUserStore.getState().invalidateAndRefresh().catch(() => {})
+      }
+
+      const attRes = await fetch('/api/attempts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ examId }),
+      })
+      const attData = await attRes.json()
+      if (!attRes.ok) throw new Error(attData.error || 'Failed to start attempt.')
+
+      setIsPracticeModalOpen(false)
+      navigate({
+        to: '/practice/$attemptId',
+        params: { attemptId: attData.attemptId },
+        search: {
+          batch: practiceBatch,
+          mode: practiceMode,
+        },
+      })
+    } catch (err: any) {
+      setError(err.message || 'Failed to start practice session.')
     } finally {
       setSaving(false)
     }
@@ -648,8 +736,8 @@ function GeneratePage() {
                 {countOption === 'custom' ? `${customCount} Questions` : `${countOption} Questions`}
               </span>
             </div>
-            <div className="grid grid-cols-4 gap-2">
-              {(['5', '10', '15'] as const).map((num) => (
+            <div className="grid grid-cols-3 sm:grid-cols-7 gap-2">
+              {(['5', '10', '15', '20', '25', '30'] as const).map((num) => (
                 <button
                   key={num}
                   type="button"
@@ -663,7 +751,7 @@ function GeneratePage() {
                     }
                   `}
                 >
-                  {num} Questions
+                  {num}Q
                 </button>
               ))}
               <button
@@ -811,107 +899,250 @@ function GeneratePage() {
             </div>
 
             {/* Quick CTA Actions */}
-            <div className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
               <button
+                type="button"
                 onClick={() => setResult(null)}
-                disabled={saving}
-                className="btn-secondary px-3.5 py-2 text-xs flex items-center gap-1.5"
-                title="Discard and generate another"
+                disabled={saving || isRegenerating}
+                className="btn-secondary px-3 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
+                title="Edit parameters in form"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
-                <span>Reset</span>
+                <Edit3 className="h-3.5 w-3.5" />
+                <span>Edit Settings</span>
               </button>
               <button
-                onClick={() => handleSaveAndAction('list')}
-                disabled={saving}
-                className="btn-secondary px-3.5 py-2 text-xs flex items-center gap-1.5"
+                type="button"
+                onClick={handleRegenerate}
+                disabled={saving || isRegenerating}
+                className="btn-secondary px-3 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
+                title="Regenerate fresh questions in place"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isRegenerating ? 'animate-spin' : ''}`} />
+                <span>Regenerate</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveToLibrary}
+                disabled={saving || isRegenerating}
+                className="btn-secondary px-3.5 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <Bookmark className="h-3.5 w-3.5" />
                 <span>Save to Library</span>
               </button>
               <button
-                onClick={() => handleSaveAndAction('practice')}
-                disabled={saving}
-                className="btn-primary px-4 py-2 text-xs flex items-center gap-1.5"
+                type="button"
+                onClick={() => setIsPracticeModalOpen(true)}
+                disabled={saving || isRegenerating}
+                className="btn-primary px-4 py-2 text-xs flex items-center gap-1.5 cursor-pointer font-semibold shadow-sm"
               >
-                {saving ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Play className="h-3.5 w-3.5 fill-current" />
-                )}
-                <span>Save & Practice</span>
+                <Play className="h-3.5 w-3.5 fill-current" />
+                <span>Start Practice</span>
               </button>
             </div>
           </div>
 
           {error && (
-            <div className="p-3 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.25)] text-xs text-[var(--color-danger)]">
-              {error}
+            <div className="p-3 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.25)] text-xs text-[var(--color-danger)] flex items-center gap-2">
+              <HelpCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
-          {/* Questions Accordion / List */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] px-1">
-              Generated Questions Preview
-            </h3>
+          {/* Questions Container with Frosted Regeneration Overlay */}
+          <div className="relative min-h-[220px]">
+            {/* Frosted Blur Overlay during in-place regeneration */}
+            {isRegenerating && (
+              <div className="absolute inset-0 z-20 backdrop-blur-md bg-[var(--bg-main)]/70 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-[var(--border-subtle)] animate-fade-in shadow-xl">
+                <Loader2 className="h-7 w-7 animate-spin text-[var(--text-primary)] mb-3" />
+                <h4 className="text-sm font-bold text-[var(--text-primary)]">
+                  Regenerating Exam with AI...
+                </h4>
+                <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-sm">
+                  Synthesizing fresh questions and verified answer keys based on your material.
+                </p>
+              </div>
+            )}
 
-            {result.questions.map((q, idx) => (
-              <div key={idx} className="gen-card p-5 space-y-3">
-                <div className="flex items-start justify-between gap-3">
+            {/* Questions List (ONLY Question Text & Type — No Options or Answer Spoilers) */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                  Generated Questions ({result.questions.length})
+                </h3>
+                <span className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5">
+                  <EyeOff className="h-3.5 w-3.5" />
+                  <span>Choices & answer keys hidden for authentic practice</span>
+                </span>
+              </div>
+
+              {result.questions.map((q, idx) => (
+                <div key={idx} className="gen-card p-4 sm:p-5 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="h-5 w-5 rounded-full bg-[var(--bg-surface-elevated)] border border-[var(--border-strong)] text-[10px] font-bold flex items-center justify-center text-[var(--text-secondary)]">
+                    <span className="h-5 w-5 rounded-full bg-[var(--bg-surface-elevated)] border border-[var(--border-strong)] text-[10px] font-bold flex items-center justify-center text-[var(--text-secondary)] shrink-0">
                       {idx + 1}
                     </span>
                     <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
                       {q.type.replace('-', ' ')}
                     </span>
                   </div>
-                </div>
 
-                <p className="text-sm font-semibold text-[var(--text-primary)]">
-                  {q.question}
+                  <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] leading-relaxed pl-7">
+                    {q.question}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Practice Launch Setup Modal ─── */}
+      {isPracticeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="gen-card max-w-md w-full p-6 space-y-6 shadow-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)]">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-[var(--text-primary)]">
+                  Practice Session Setup
+                </h3>
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                  Choose your question delivery and grading system
                 </p>
-
-                {/* Options if Multiple Choice */}
-                {q.options && q.options.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    {q.options.map((opt, oIdx) => {
-                      const isCorrect = opt === q.correctAnswer
-                      return (
-                        <div
-                          key={oIdx}
-                          className={`
-                            px-3 py-2 rounded-lg text-xs flex items-center justify-between border
-                            ${
-                              isCorrect
-                                ? 'bg-[var(--color-success-subtle)] border-emerald-500/40 text-[var(--color-success)] font-semibold'
-                                : 'bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] text-[var(--text-secondary)]'
-                            }
-                          `}
-                        >
-                          <span>{opt}</span>
-                          {isCorrect && <CheckCircle className="h-3.5 w-3.5 shrink-0" />}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-
-                {/* Short answer correct key */}
-                {!q.options && (
-                  <div className="px-3 py-2 rounded-lg bg-[var(--color-success-subtle)] border border-emerald-500/40 text-xs text-[var(--color-success)] font-medium">
-                    Answer Key: {q.correctAnswer}
-                  </div>
-                )}
-
-                {/* Explanation */}
-                <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] text-[11px] text-[var(--text-secondary)] leading-relaxed border border-[var(--border-subtle)]">
-                  <span className="font-semibold text-[var(--text-primary)]">Explanation: </span>
-                  {q.explanation}
-                </div>
               </div>
-            ))}
+              <button
+                type="button"
+                onClick={() => setIsPracticeModalOpen(false)}
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg transition hover:bg-[var(--bg-surface-elevated)] cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Section 1: Question Batching */}
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                Question Delivery
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'all', label: 'All at once' },
+                  { id: '5', label: '5 at a time' },
+                  { id: '1', label: '1 at a time' },
+                ].map((b) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setPracticeBatch(b.id as any)}
+                    className={`py-2.5 px-2 rounded-xl text-xs font-medium border text-center transition cursor-pointer ${
+                      practiceBatch === b.id
+                        ? 'btn-primary font-bold'
+                        : 'btn-secondary text-[var(--text-secondary)]'
+                    }`}
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 2: Grading & Feedback System */}
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                Grading & Feedback
+              </label>
+              <div className="grid grid-cols-1 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setPracticeMode('instant')}
+                  className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-3 ${
+                    practiceMode === 'instant'
+                      ? 'bg-[var(--bg-surface-elevated)] border-2 border-[var(--border-strong)] ring-1 ring-[var(--border-strong)]'
+                      : 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)]'
+                  }`}
+                >
+                  <div className="mt-0.5">
+                    <div
+                      className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${
+                        practiceMode === 'instant'
+                          ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-main)]'
+                          : 'border-[var(--border-strong)]'
+                      }`}
+                    >
+                      {practiceMode === 'instant' && <div className="h-1.5 w-1.5 rounded-full bg-[var(--bg-main)]" />}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                      <span>Instant Feedback Mode</span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded badge-success">Recommended</span>
+                    </div>
+                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+                      Reveals right/wrong answers and concise explanations immediately upon selection, with on-demand AI tutor breakdowns.
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPracticeMode('exam')}
+                  className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-3 ${
+                    practiceMode === 'exam'
+                      ? 'bg-[var(--bg-surface-elevated)] border-2 border-[var(--border-strong)] ring-1 ring-[var(--border-strong)]'
+                      : 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)]'
+                  }`}
+                >
+                  <div className="mt-0.5">
+                    <div
+                      className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${
+                        practiceMode === 'exam'
+                          ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-main)]'
+                          : 'border-[var(--border-strong)]'
+                      }`}
+                    >
+                      {practiceMode === 'exam' && <div className="h-1.5 w-1.5 rounded-full bg-[var(--bg-main)]" />}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs font-bold text-[var(--text-primary)]">
+                      Exam Mode
+                    </div>
+                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+                      Standard test conditions. Keeps answers silent until submission, then delivers full score and detailed analytics.
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsPracticeModalOpen(false)}
+                disabled={saving}
+                className="btn-secondary px-4 py-2 text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleStartPractice}
+                disabled={saving}
+                className="btn-primary px-5 py-2 text-xs flex items-center gap-2 cursor-pointer font-semibold shadow-sm"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Preparing Session...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-3.5 w-3.5 fill-current" />
+                    <span>Start Practice Now</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

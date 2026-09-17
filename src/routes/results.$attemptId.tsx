@@ -63,6 +63,9 @@ function ResultsPage() {
   const recordQuestionAnswer = useExamPerformanceStore((state) => state.recordQuestionAnswer)
   const questionPerformance = useExamPerformanceStore((state) => state.questionPerformance)
 
+  // Filter state for reviewing questions
+  const [filter, setFilter] = useState<'all' | 'incorrect' | 'correct'>('all')
+
   // AI Explanation state per question: questionId -> string
   const [aiExplanations, setAiExplanations] = useState<Record<string, string>>({})
   const [explainingLoading, setExplainingLoading] = useState<Record<string, boolean>>({})
@@ -155,6 +158,19 @@ function ResultsPage() {
   const wrongQuestions = questions.filter((q) => {
     const a = answersMap[q.id]
     return !a || !a.isCorrect
+  })
+
+  const correctQuestions = questions.filter((q) => {
+    const a = answersMap[q.id]
+    return a && a.isCorrect
+  })
+
+  const displayedQuestions = questions.filter((q) => {
+    const a = answersMap[q.id]
+    const isCorrect = a?.isCorrect ?? false
+    if (filter === 'incorrect') return !isCorrect
+    if (filter === 'correct') return isCorrect
+    return true
   })
 
   const handleRequestExplanation = async (q: Question, customPrompt?: string) => {
@@ -285,45 +301,111 @@ function ResultsPage() {
         </div>
       </div>
 
-      {/* ── Wrong Questions Breakdown with AI Explanations ── */}
+      {/* ── All Exam Questions Breakdown & Review ── */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between px-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
-              Questions Needing Review ({wrongQuestions.length})
+              Exam Review & Explanations ({questions.length})
             </h2>
             <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
-              Target your weak spots and ask the AI tutor for step-by-step proofs.
+              Review full answers, conceptual breakdowns, and ask the AI tutor for step-by-step proofs.
             </p>
+          </div>
+
+          {/* Quick Filter Tabs */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setFilter('all')}
+              className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+                filter === 'all'
+                  ? 'btn-primary font-bold shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              }`}
+            >
+              All ({questions.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter('incorrect')}
+              className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
+                filter === 'incorrect'
+                  ? 'btn-primary font-bold shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              }`}
+            >
+              <span>Missed ({wrongQuestions.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter('correct')}
+              className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
+                filter === 'correct'
+                  ? 'btn-primary font-bold shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              }`}
+            >
+              <span>Correct ({correctQuestions.length})</span>
+            </button>
           </div>
         </div>
 
-        {wrongQuestions.length === 0 ? (
+        {displayedQuestions.length === 0 ? (
           <div className="gen-card p-8 text-center">
             <CheckCircle2 className="h-10 w-10 text-[var(--color-success)] mx-auto mb-2" />
-            <h3 className="text-sm font-semibold text-[var(--text-primary)]">Perfect Score!</h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">No questions in this filter</h3>
             <p className="text-xs text-[var(--text-secondary)] mt-1">
-              You answered every question correctly on this exam.
+              Select "All ({questions.length})" to view every question in this exam.
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {wrongQuestions.map((q) => {
+            {displayedQuestions.map((q) => {
               const a = answersMap[q.id]
+              const isCorrect = a?.isCorrect ?? false
               const explanation = aiExplanations[q.id]
               const isExplaining = explainingLoading[q.id]
-              const followUpText = followUps[q.id] || ''
 
               return (
-                <div key={q.id} className="gen-card p-6 space-y-4 border-l-4 border-l-[var(--color-danger)]">
+                <div
+                  key={q.id}
+                  className={`gen-card p-6 space-y-4 border-l-4 ${
+                    isCorrect
+                      ? 'border-l-[var(--color-success)]'
+                      : 'border-l-[var(--color-danger)]'
+                  }`}
+                >
                   {/* Header */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="h-5 w-5 rounded-full bg-[var(--color-danger-subtle)] text-[var(--color-danger)] text-[10px] font-bold flex items-center justify-center">
+                      <span
+                        className={`h-5 w-5 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                          isCorrect
+                            ? 'bg-[var(--color-success-subtle)] text-[var(--color-success)]'
+                            : 'bg-[var(--color-danger-subtle)] text-[var(--color-danger)]'
+                        }`}
+                      >
                         {q.order}
                       </span>
-                      <span className="text-[10px] font-bold text-[var(--color-danger)] uppercase tracking-wider">
-                        Incorrect Answer
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ${
+                          isCorrect
+                            ? 'text-[var(--color-success)]'
+                            : 'text-[var(--color-danger)]'
+                        }`}
+                      >
+                        {isCorrect ? (
+                          <>
+                            <CheckCircle2 className="h-3.5 w-3.5 stroke-[2.5]" />
+                            <span>Correct</span>
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="h-3.5 w-3.5 stroke-[2.5]" />
+                            <span>Incorrect Answer</span>
+                          </>
+                        )}
                       </span>
                       {questionPerformance[q.id] && questionPerformance[q.id].timesAttempted > 1 && (
                         <span className="text-[10px] text-[var(--text-muted)] font-medium">
@@ -332,18 +414,20 @@ function ResultsPage() {
                       )}
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => toggleRetry(q.id)}
-                      className="btn-secondary px-2.5 py-1 text-[11px] flex items-center gap-1.5 cursor-pointer font-medium"
-                    >
-                      <RotateCcw className="h-3 w-3" />
-                      <span>{retryStates[q.id]?.active ? 'Close Practice' : 'Retry Question'}</span>
-                    </button>
+                    {!isCorrect && (
+                      <button
+                        type="button"
+                        onClick={() => toggleRetry(q.id)}
+                        className="btn-secondary px-2.5 py-1 text-[11px] flex items-center gap-1.5 cursor-pointer font-medium"
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                        <span>{retryStates[q.id]?.active ? 'Close Practice' : 'Retry Question'}</span>
+                      </button>
+                    )}
                   </div>
 
-                  {/* Interactive In-line Retry Drawer */}
-                  {retryStates[q.id]?.active && (
+                  {/* Interactive In-line Retry Drawer for Missed Questions */}
+                  {!isCorrect && retryStates[q.id]?.active && (
                     <div className="p-4 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-strong)] space-y-3 animate-fade-in">
                       <div className="flex items-center justify-between">
                         <h4 className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
@@ -443,32 +527,48 @@ function ResultsPage() {
                     {q.question}
                   </h3>
 
-                  {/* Compare Answers */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <div className="p-3 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.25)]">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-danger)] block mb-1">
-                        Your Answer:
-                      </span>
-                      <p className="text-xs font-semibold text-[var(--text-primary)]">
-                        {a?.userAnswer || 'Left Blank'}
-                      </p>
+                  {/* Answers Display */}
+                  {isCorrect ? (
+                    <div className="p-3.5 rounded-xl bg-[var(--color-success-subtle)] border border-[rgba(16,185,129,0.25)] flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-success)] block mb-0.5">
+                          Your Answer (Correct):
+                        </span>
+                        <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)]">
+                          {a?.userAnswer || q.correctAnswer}
+                        </p>
+                      </div>
+                      <CheckCircle2 className="h-5 w-5 text-[var(--color-success)] shrink-0" />
                     </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div className="p-3 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.25)]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-danger)] block mb-1">
+                          Your Answer:
+                        </span>
+                        <p className="text-xs font-semibold text-[var(--text-primary)]">
+                          {a?.userAnswer || 'Left Blank'}
+                        </p>
+                      </div>
 
-                    <div className="p-3 rounded-xl bg-[var(--color-success-subtle)] border border-[rgba(16,185,129,0.25)]">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-success)] block mb-1">
-                        Correct Answer:
-                      </span>
-                      <p className="text-xs font-semibold text-[var(--text-primary)]">
-                        {q.correctAnswer}
-                      </p>
+                      <div className="p-3 rounded-xl bg-[var(--color-success-subtle)] border border-[rgba(16,185,129,0.25)]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-success)] block mb-1">
+                          Correct Answer:
+                        </span>
+                        <p className="text-xs font-semibold text-[var(--text-primary)]">
+                          {q.correctAnswer}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Base Quick Explanation */}
-                  <div className="p-3 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] leading-relaxed">
-                    <span className="font-semibold text-[var(--text-primary)]">Key Concept: </span>
-                    {q.explanation}
-                  </div>
+                  {q.explanation && (
+                    <div className="p-3 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] leading-relaxed">
+                      <span className="font-semibold text-[var(--text-primary)]">Key Concept: </span>
+                      {q.explanation}
+                    </div>
+                  )}
 
                   {/* AI Tutor Deep-Dive Card */}
                   <div className="pt-2 border-t border-[var(--border-subtle)]">
@@ -485,7 +585,7 @@ function ResultsPage() {
                           </>
                         ) : (
                           <>
-                            <Sparkles className="h-3.5 w-3.5" />
+                            <Sparkles className="h-3.5 w-3.5 text-amber-500" />
                             <span>Explain Why & Show Step-by-Step with AI</span>
                           </>
                         )}
@@ -493,7 +593,7 @@ function ResultsPage() {
                     ) : (
                       <div className="rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] p-4 space-y-3 animate-fade-in">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-primary)]">
-                          <Sparkles className="h-3.5 w-3.5" />
+                          <Sparkles className="h-3.5 w-3.5 text-amber-500" />
                           <span>AI Tutor Breakdown</span>
                         </div>
 

@@ -117,7 +117,7 @@ Your response must be a single valid JSON object with EXACTLY this structure:
 }
 
 RULES:
-1. QUESTION COUNT: Generate EXACTLY ${count} questions.
+1. QUESTION COUNT: You MUST generate EXACTLY ${count} questions. The "questions" array MUST contain exactly ${count} items with order: 1, 2, ..., ${count}. You MUST NOT stop early or generate fewer questions under any circumstances.
 2. QUESTION FORMATS: Permitted formats are: [${typesDesc}]. ONLY use types from this permitted list.
 ${
   activeTypes.length > 1
@@ -134,13 +134,14 @@ ${
     : `   - Explicit discipline: The user specified "${cleanSubject}". Contextualize all questions and terminology within this subject.`
 }
 6. DIFFICULTY: The difficulty is "${difficulty}". Ensure the problem depth, vocabulary, and conceptual challenge accurately match this level.
+7. EXPLANATION CONCISENESS: Keep each "explanation" concise (1 to 2 clear sentences) stating directly why the correct answer is right and why the key distractor is mistaken. Deep, conversational explanations are provided interactively via the tutor on-demand.
 ${
   docRecord
-    ? `7. SOURCE MATERIAL FIDELITY: All questions, answers, and explanations MUST be strictly derived from and faithful to the provided SOURCE MATERIAL. Do NOT make up facts not mentioned in the source material.
-${topic && topic.trim() ? `8. FOCUS INSTRUCTION: The user provided this focus instruction: "${topic.trim()}". Weight questions more heavily towards these requested concepts while staying completely faithful to the source material.` : ''}`
+    ? `8. SOURCE MATERIAL FIDELITY: All questions, answers, and explanations MUST be strictly derived from and faithful to the provided SOURCE MATERIAL. Do NOT make up facts not mentioned in the source material.
+${topic && topic.trim() ? `9. FOCUS INSTRUCTION: The user provided this focus instruction: "${topic.trim()}". Weight questions more heavily towards these requested concepts while staying completely faithful to the source material.` : ''}`
     : ''
 }
-8. Return ONLY pure JSON. No markdown backticks, no introduction, no conversational filler.`
+10. Return ONLY pure JSON. No markdown backticks, no introduction, no conversational filler.`
 
           const userPrompt = docRecord
             ? `SOURCE MATERIAL (Extracted from uploaded file: ${docRecord.filename}):
@@ -201,6 +202,7 @@ Please generate the complete exam in the required JSON format.`
               ],
               response_format: { type: 'json_object' },
               temperature: 0.6,
+              max_tokens: 8192,
             }),
           })
 

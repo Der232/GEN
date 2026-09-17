@@ -6,6 +6,9 @@ import {
   Loader2,
   HelpCircle,
   AlertTriangle,
+  Sparkles,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react'
 import { useExamSessionStore } from '#/stores/useExamSessionStore'
 import { useUserStore } from '#/stores/useUserStore'
@@ -14,7 +17,8 @@ export const Route = createFileRoute('/practice/$attemptId')({
   component: PracticePage,
   validateSearch: (search: Record<string, unknown>) => {
     return {
-      batch: Number(search?.batch) || 1,
+      batch: search?.batch ? String(search.batch) : '1',
+      mode: (search?.mode === 'instant' ? 'instant' : 'exam') as 'instant' | 'exam',
     }
   },
 })
@@ -26,6 +30,7 @@ interface Question {
   question: string
   options?: string[] | null
   correctAnswer: string
+  explanation?: string
 }
 
 interface AttemptAnswer {
@@ -39,13 +44,24 @@ function PracticePage() {
   const search = Route.useSearch()
   const navigate = useNavigate()
 
-  const batchSize = Math.max(Number(search.batch) || 1, 1)
+  const rawBatch = search.batch
+  const isAllBatch = rawBatch === 'all'
+  const isInstantMode = search.mode === 'instant'
+
+  const [batchSize, setBatchSize] = useState<number>(() => {
+    if (rawBatch === 'all') return 999
+    return Math.max(Number(rawBatch) || 1, 1)
+  })
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [examTitle, setExamTitle] = useState('')
   const [subject, setSubject] = useState('')
   const [questions, setQuestions] = useState<Question[]>([])
+
+  // AI explanations on demand for instant mode
+  const [aiExplanations, setAiExplanations] = useState<Record<string, string>>({})
+  const [explainingLoading, setExplainingLoading] = useState<Record<string, boolean>>({})
 
   // Zustand persistent session store
   const userAnswers = useExamSessionStore((state) => state.userAnswers)
@@ -54,6 +70,31 @@ function PracticePage() {
   const setBatchIndex = useExamSessionStore((state) => state.setBatchIndex)
   const initSession = useExamSessionStore((state) => state.initSession)
   const clearSession = useExamSessionStore((state) => state.clearSession)
+
+  const handleRequestExplanation = async (q: Question) => {
+    const ans = userAnswers[q.id] || ''
+    setExplainingLoading((prev) => ({ ...prev, [q.id]: true }))
+    try {
+      const res = await fetch('/api/exam/explain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: q.question,
+          correctAnswer: q.correctAnswer,
+          userAnswer: ans,
+          explanation: q.explanation || '',
+        }),
+      })
+      const data = await res.json()
+      if (data.explanation) {
+        setAiExplanations((prev) => ({ ...prev, [q.id]: data.explanation }))
+      }
+    } catch (e) {
+      console.error('Failed to get AI explanation:', e)
+    } finally {
+      setExplainingLoading((prev) => ({ ...prev, [q.id]: false }))
+    }
+  }
 
   useEffect(() => {
     fetch(`/api/attempts/${attemptId}`)
@@ -70,6 +111,11 @@ function PracticePage() {
           setSubject(data.exam.subject)
         }
 
+        const effectiveBatchSize = isAllBatch
+          ? Math.max(data.questions?.length || 1, 1)
+          : Math.max(Number(rawBatch) || 1, 1)
+        setBatchSize(effectiveBatchSize)
+
         if (data.questions) {
           setQuestions(data.questions)
         }
@@ -85,20 +131,20 @@ function PracticePage() {
         initSession({
           attemptId,
           examId: data.exam?.id || '',
-          batchSize,
+          batchSize: effectiveBatchSize,
           initialAnswers: serverAnswers,
         })
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false))
-  }, [attemptId, batchSize, initSession, navigate])
+  }, [attemptId, isAllBatch, rawBatch, initSession, navigate])
 
   const currentQuestions = questions.slice(
     currentBatchIndex * batchSize,
     (currentBatchIndex + 1) * batchSize,
   )
 
-  const totalBatches = Math.ceil(questions.length / batchSize)
+  const totalBatches = Math.max(1, Math.ceil(questions.length / batchSize))
   const isLastBatch = currentBatchIndex >= totalBatches - 1
 
   const handleSelectAnswer = async (questionId: string, answer: string) => {
@@ -207,8 +253,17 @@ function PracticePage() {
 
       {/* Notice on exam rules */}
       <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[11px] text-[var(--text-muted)]">
-        <AlertTriangle className="h-3.5 w-3.5 text-[var(--color-warning)] shrink-0" />
-        <span>You cannot revisit previous questions once you advance. Results & AI explanations appear at the end.</span>
+        {isInstantMode ? (
+          <>
+            <Sparkles className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+            <span>Instant Feedback Mode: Select an answer to verify immediately with concise explanations and AI tutoring.</span>
+          </>
+        ) : (
+          <>
+            <AlertTriangle className="h-3.5 w-3.5 text-[var(--color-warning)] shrink-0" />
+            <span>Exam Mode: Answers remain hidden until submission. Full score and detailed review appear at the end.</span>
+          </>
+        )}
       </div>
 
       {/* Current Questions List */}
@@ -238,29 +293,54 @@ function PracticePage() {
                 <div className="grid gap-2.5 pt-2 pl-9">
                   {q.options.map((opt, oIdx) => {
                     const isSelected = selectedAnswer === opt
+                    const isCorrectAnswer = opt.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase()
+
+                    let buttonClass = 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]'
+
+                    if (isInstantMode && selectedAnswer) {
+                      if (isSelected) {
+                        buttonClass = isCorrectAnswer
+                          ? 'bg-[var(--color-success-subtle)] border-2 border-emerald-500 text-[var(--color-success)] font-bold ring-1 ring-emerald-500'
+                          : 'bg-[var(--color-danger-subtle)] border-2 border-red-500 text-[var(--color-danger)] font-bold ring-1 ring-red-500'
+                      } else if (isCorrectAnswer) {
+                        buttonClass = 'bg-[var(--bg-surface-elevated)] border border-emerald-500/50 text-[var(--color-success)] font-semibold'
+                      }
+                    } else if (isSelected) {
+                      buttonClass = 'bg-[var(--bg-surface-elevated)] border-2 border-[var(--border-strong)] text-[var(--text-primary)] font-semibold shadow-sm ring-1 ring-[var(--border-strong)]'
+                    }
+
                     return (
                       <button
                         key={oIdx}
                         type="button"
                         onClick={() => handleSelectAnswer(q.id, opt)}
-                        className={`
-                          w-full p-3.5 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between text-left transition-all cursor-pointer
-                          ${
-                            isSelected
-                              ? 'bg-[var(--bg-surface-elevated)] border-2 border-[var(--border-strong)] text-[var(--text-primary)] font-semibold shadow-sm ring-1 ring-[var(--border-strong)]'
-                              : 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]'
-                          }
-                        `}
+                        className={`w-full p-3.5 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between text-left transition-all cursor-pointer ${buttonClass}`}
                       >
                         <span className="pr-3">{opt}</span>
-                        <div
-                          className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${
-                            isSelected
-                              ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-main)]'
-                              : 'border-[var(--border-strong)]'
-                          }`}
-                        >
-                          {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-[var(--bg-main)]" />}
+                        <div className="shrink-0 flex items-center gap-1.5">
+                          {isInstantMode && selectedAnswer && isSelected && (
+                            isCorrectAnswer ? (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-500 stroke-[2.5]" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-red-500 stroke-[2.5]" />
+                            )
+                          )}
+                          {isInstantMode && selectedAnswer && !isSelected && isCorrectAnswer && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                              Correct Key
+                            </span>
+                          )}
+                          {!isInstantMode && (
+                            <div
+                              className={`h-4 w-4 rounded-full border flex items-center justify-center ${
+                                isSelected
+                                  ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-main)]'
+                                  : 'border-[var(--border-strong)]'
+                              }`}
+                            >
+                              {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-[var(--bg-main)]" />}
+                            </div>
+                          )}
                         </div>
                       </button>
                     )
@@ -273,21 +353,37 @@ function PracticePage() {
                 <div className="grid grid-cols-2 gap-3 pt-2 pl-9">
                   {['True', 'False'].map((val) => {
                     const isSelected = selectedAnswer.toLowerCase() === val.toLowerCase()
+                    const isCorrectAnswer = val.toLowerCase() === q.correctAnswer.toLowerCase()
+
+                    let buttonClass = 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]'
+
+                    if (isInstantMode && selectedAnswer) {
+                      if (isSelected) {
+                        buttonClass = isCorrectAnswer
+                          ? 'bg-[var(--color-success-subtle)] border-2 border-emerald-500 text-[var(--color-success)] font-bold ring-1 ring-emerald-500'
+                          : 'bg-[var(--color-danger-subtle)] border-2 border-red-500 text-[var(--color-danger)] font-bold ring-1 ring-red-500'
+                      } else if (isCorrectAnswer) {
+                        buttonClass = 'bg-[var(--bg-surface-elevated)] border border-emerald-500/50 text-[var(--color-success)] font-semibold'
+                      }
+                    } else if (isSelected) {
+                      buttonClass = 'bg-[var(--bg-surface-elevated)] border-2 border-[var(--border-strong)] text-[var(--text-primary)] ring-1 ring-[var(--border-strong)] font-bold'
+                    }
+
                     return (
                       <button
                         key={val}
                         type="button"
                         onClick={() => handleSelectAnswer(q.id, val)}
-                        className={`
-                          py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer text-center border
-                          ${
-                            isSelected
-                              ? 'bg-[var(--bg-surface-elevated)] border-2 border-[var(--border-strong)] text-[var(--text-primary)] ring-1 ring-[var(--border-strong)] font-bold'
-                              : 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]'
-                          }
-                        `}
+                        className={`py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer text-center border flex items-center justify-center gap-2 ${buttonClass}`}
                       >
-                        {val}
+                        <span>{val}</span>
+                        {isInstantMode && selectedAnswer && isSelected && (
+                          isCorrectAnswer ? (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          )
+                        )}
                       </button>
                     )
                   })}
@@ -304,6 +400,76 @@ function PracticePage() {
                     placeholder="Type your concise conceptual answer..."
                     className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] p-3 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--border-strong)] transition resize-none"
                   />
+                </div>
+              )}
+
+              {/* Instant Feedback & AI Explanation on selection */}
+              {isInstantMode && selectedAnswer && (
+                <div className="space-y-3 pt-2 pl-9 animate-fade-in">
+                  {/* Feedback Banner */}
+                  <div
+                    className={`p-3 rounded-xl border text-xs flex items-center gap-2 font-medium ${
+                      selectedAnswer.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase()
+                        ? 'bg-[var(--color-success-subtle)] border-emerald-500/30 text-[var(--color-success)]'
+                        : 'bg-[var(--color-danger-subtle)] border-red-500/30 text-[var(--color-danger)]'
+                    }`}
+                  >
+                    {selectedAnswer.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase() ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 shrink-0 stroke-[2.5]" />
+                        <span>Correct! Great comprehension.</span>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 shrink-0 stroke-[2.5]" />
+                        <span>
+                          Incorrect. Correct answer: <strong className="ml-1">{q.correctAnswer}</strong>
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Base Concise Explanation */}
+                  {q.explanation && (
+                    <div className="p-3 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] leading-relaxed">
+                      <span className="font-semibold text-[var(--text-primary)]">Explanation: </span>
+                      {q.explanation}
+                    </div>
+                  )}
+
+                  {/* AI Tutor On-Demand Button & Breakdown */}
+                  <div className="pt-1">
+                    {!aiExplanations[q.id] ? (
+                      <button
+                        type="button"
+                        onClick={() => handleRequestExplanation(q)}
+                        disabled={explainingLoading[q.id]}
+                        className="btn-secondary px-3 py-1.5 text-xs flex items-center gap-1.5 cursor-pointer font-medium hover:border-[var(--border-strong)]"
+                      >
+                        {explainingLoading[q.id] ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>AI Tutor is analyzing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                            <span>Explain with AI</span>
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="p-3.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] space-y-2 animate-fade-in">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-primary)]">
+                          <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                          <span>AI Tutor Explanation</span>
+                        </div>
+                        <p className="text-xs text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
+                          {aiExplanations[q.id]}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
