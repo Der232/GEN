@@ -3,7 +3,7 @@
   "name": "gen",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
-  "main": "@tanstack/react-start/server-entry",
+  "main": "./src/server-entry.ts",
   "d1_databases": [
     {
       "binding": "DB",
@@ -12,6 +12,26 @@
       "migrations_dir": "./drizzle"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "DOCUMENTS_BUCKET",
+      "bucket_name": "gen-documents"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "DOCUMENT_QUEUE",
+        "queue": "gen-document-processing"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "gen-document-processing",
+        "max_batch_size": 1
+      }
+    ]
+  },
   "observability": {
     "enabled": true
   }

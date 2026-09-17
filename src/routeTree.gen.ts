@@ -22,12 +22,15 @@ import { Route as ResultsAttemptIdRouteImport } from './routes/results.$attemptI
 import { Route as ApiAttemptsIndexRouteImport } from './routes/api/attempts/index'
 import { Route as ApiAttemptsIdRouteImport } from './routes/api/attempts/$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiDocumentsInitiateRouteImport } from './routes/api/documents/initiate'
 import { Route as ApiExamExplainRouteImport } from './routes/api/exam/explain'
 import { Route as ApiExamGenerateRouteImport } from './routes/api/exam/generate'
 import { Route as ApiExamsIndexRouteImport } from './routes/api/exams/index'
 import { Route as ApiExamsIdRouteImport } from './routes/api/exams/$id'
 import { Route as ApiUserDeleteRouteImport } from './routes/api/user/delete'
 import { Route as ApiUserMeRouteImport } from './routes/api/user/me'
+import { Route as ApiDocumentsIdStatusRouteImport } from './routes/api/documents/$id/status'
+import { Route as ApiDocumentsIdUploadRouteImport } from './routes/api/documents/$id/upload'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,6 +97,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDocumentsInitiateRoute = ApiDocumentsInitiateRouteImport.update({
+  id: '/api/documents/initiate',
+  path: '/api/documents/initiate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiExamExplainRoute = ApiExamExplainRouteImport.update({
   id: '/api/exam/explain',
   path: '/api/exam/explain',
@@ -124,6 +132,16 @@ const ApiUserMeRoute = ApiUserMeRouteImport.update({
   path: '/api/user/me',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDocumentsIdStatusRoute = ApiDocumentsIdStatusRouteImport.update({
+  id: '/api/documents/$id/status',
+  path: '/api/documents/$id/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDocumentsIdUploadRoute = ApiDocumentsIdUploadRouteImport.update({
+  id: '/api/documents/$id/upload',
+  path: '/api/documents/$id/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/results/$attemptId': typeof ResultsAttemptIdRoute
   '/api/attempts/$id': typeof ApiAttemptsIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/documents/initiate': typeof ApiDocumentsInitiateRoute
   '/api/exam/explain': typeof ApiExamExplainRoute
   '/api/exam/generate': typeof ApiExamGenerateRoute
   '/api/exams/$id': typeof ApiExamsIdRoute
@@ -145,6 +164,8 @@ export interface FileRoutesByFullPath {
   '/api/user/me': typeof ApiUserMeRoute
   '/api/attempts/': typeof ApiAttemptsIndexRoute
   '/api/exams/': typeof ApiExamsIndexRoute
+  '/api/documents/$id/status': typeof ApiDocumentsIdStatusRoute
+  '/api/documents/$id/upload': typeof ApiDocumentsIdUploadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -159,6 +180,7 @@ export interface FileRoutesByTo {
   '/results/$attemptId': typeof ResultsAttemptIdRoute
   '/api/attempts/$id': typeof ApiAttemptsIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/documents/initiate': typeof ApiDocumentsInitiateRoute
   '/api/exam/explain': typeof ApiExamExplainRoute
   '/api/exam/generate': typeof ApiExamGenerateRoute
   '/api/exams/$id': typeof ApiExamsIdRoute
@@ -166,6 +188,8 @@ export interface FileRoutesByTo {
   '/api/user/me': typeof ApiUserMeRoute
   '/api/attempts': typeof ApiAttemptsIndexRoute
   '/api/exams': typeof ApiExamsIndexRoute
+  '/api/documents/$id/status': typeof ApiDocumentsIdStatusRoute
+  '/api/documents/$id/upload': typeof ApiDocumentsIdUploadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -181,6 +205,7 @@ export interface FileRoutesById {
   '/results/$attemptId': typeof ResultsAttemptIdRoute
   '/api/attempts/$id': typeof ApiAttemptsIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/documents/initiate': typeof ApiDocumentsInitiateRoute
   '/api/exam/explain': typeof ApiExamExplainRoute
   '/api/exam/generate': typeof ApiExamGenerateRoute
   '/api/exams/$id': typeof ApiExamsIdRoute
@@ -188,6 +213,8 @@ export interface FileRoutesById {
   '/api/user/me': typeof ApiUserMeRoute
   '/api/attempts/': typeof ApiAttemptsIndexRoute
   '/api/exams/': typeof ApiExamsIndexRoute
+  '/api/documents/$id/status': typeof ApiDocumentsIdStatusRoute
+  '/api/documents/$id/upload': typeof ApiDocumentsIdUploadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -204,6 +231,7 @@ export interface FileRouteTypes {
     | '/results/$attemptId'
     | '/api/attempts/$id'
     | '/api/auth/$'
+    | '/api/documents/initiate'
     | '/api/exam/explain'
     | '/api/exam/generate'
     | '/api/exams/$id'
@@ -211,6 +239,8 @@ export interface FileRouteTypes {
     | '/api/user/me'
     | '/api/attempts/'
     | '/api/exams/'
+    | '/api/documents/$id/status'
+    | '/api/documents/$id/upload'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -225,6 +255,7 @@ export interface FileRouteTypes {
     | '/results/$attemptId'
     | '/api/attempts/$id'
     | '/api/auth/$'
+    | '/api/documents/initiate'
     | '/api/exam/explain'
     | '/api/exam/generate'
     | '/api/exams/$id'
@@ -232,6 +263,8 @@ export interface FileRouteTypes {
     | '/api/user/me'
     | '/api/attempts'
     | '/api/exams'
+    | '/api/documents/$id/status'
+    | '/api/documents/$id/upload'
   id:
     | '__root__'
     | '/'
@@ -246,6 +279,7 @@ export interface FileRouteTypes {
     | '/results/$attemptId'
     | '/api/attempts/$id'
     | '/api/auth/$'
+    | '/api/documents/initiate'
     | '/api/exam/explain'
     | '/api/exam/generate'
     | '/api/exams/$id'
@@ -253,6 +287,8 @@ export interface FileRouteTypes {
     | '/api/user/me'
     | '/api/attempts/'
     | '/api/exams/'
+    | '/api/documents/$id/status'
+    | '/api/documents/$id/upload'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -268,6 +304,7 @@ export interface RootRouteChildren {
   ResultsAttemptIdRoute: typeof ResultsAttemptIdRoute
   ApiAttemptsIdRoute: typeof ApiAttemptsIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiDocumentsInitiateRoute: typeof ApiDocumentsInitiateRoute
   ApiExamExplainRoute: typeof ApiExamExplainRoute
   ApiExamGenerateRoute: typeof ApiExamGenerateRoute
   ApiExamsIdRoute: typeof ApiExamsIdRoute
@@ -275,6 +312,8 @@ export interface RootRouteChildren {
   ApiUserMeRoute: typeof ApiUserMeRoute
   ApiAttemptsIndexRoute: typeof ApiAttemptsIndexRoute
   ApiExamsIndexRoute: typeof ApiExamsIndexRoute
+  ApiDocumentsIdStatusRoute: typeof ApiDocumentsIdStatusRoute
+  ApiDocumentsIdUploadRoute: typeof ApiDocumentsIdUploadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -370,6 +409,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/documents/initiate': {
+      id: '/api/documents/initiate'
+      path: '/api/documents/initiate'
+      fullPath: '/api/documents/initiate'
+      preLoaderRoute: typeof ApiDocumentsInitiateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/exam/explain': {
       id: '/api/exam/explain'
       path: '/api/exam/explain'
@@ -412,6 +458,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUserMeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/documents/$id/status': {
+      id: '/api/documents/$id/status'
+      path: '/api/documents/$id/status'
+      fullPath: '/api/documents/$id/status'
+      preLoaderRoute: typeof ApiDocumentsIdStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/documents/$id/upload': {
+      id: '/api/documents/$id/upload'
+      path: '/api/documents/$id/upload'
+      fullPath: '/api/documents/$id/upload'
+      preLoaderRoute: typeof ApiDocumentsIdUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -428,6 +488,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResultsAttemptIdRoute: ResultsAttemptIdRoute,
   ApiAttemptsIdRoute: ApiAttemptsIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiDocumentsInitiateRoute: ApiDocumentsInitiateRoute,
   ApiExamExplainRoute: ApiExamExplainRoute,
   ApiExamGenerateRoute: ApiExamGenerateRoute,
   ApiExamsIdRoute: ApiExamsIdRoute,
@@ -435,6 +496,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUserMeRoute: ApiUserMeRoute,
   ApiAttemptsIndexRoute: ApiAttemptsIndexRoute,
   ApiExamsIndexRoute: ApiExamsIndexRoute,
+  ApiDocumentsIdStatusRoute: ApiDocumentsIdStatusRoute,
+  ApiDocumentsIdUploadRoute: ApiDocumentsIdUploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -50,10 +50,28 @@ export const verification = sqliteTable('verification', {
   updatedAt: integer('updatedAt', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 })
 
+// ─── Documents ───────────────────────────────────────────────────────────────
+export const documents = sqliteTable('documents', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  filename: text('filename').notNull(),
+  fileType: text('file_type', { enum: ['pdf', 'pptx', 'docx'] }).notNull(),
+  fileSize: integer('file_size').notNull(),
+  r2Key: text('r2_key').notNull(),
+  status: text('status', {
+    enum: ['uploading', 'uploaded', 'processing', 'ready', 'failed'],
+  }).notNull().default('uploading'),
+  extractedText: text('extracted_text'),
+  errorMessage: text('error_message'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
 // ─── Exams ───────────────────────────────────────────────────────────────────
 export const exams = sqliteTable('exams', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull(),
+  documentId: text('document_id').references(() => documents.id, { onDelete: 'set null' }),
   authorDisplayName: text('author_display_name').notNull(),
   title: text('title').notNull(),
   subject: text('subject').notNull(),
@@ -104,6 +122,8 @@ export const attemptAnswers = sqliteTable('attempt_answers', {
 
 export type User = typeof user.$inferSelect
 export type Session = typeof session.$inferSelect
+export type Document = typeof documents.$inferSelect
+export type NewDocument = typeof documents.$inferInsert
 export type Exam = typeof exams.$inferSelect
 export type NewExam = typeof exams.$inferInsert
 export type Question = typeof questions.$inferSelect

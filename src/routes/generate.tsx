@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   Loader2,
   CheckCircle,
@@ -8,6 +8,12 @@ import {
   RotateCcw,
   Bookmark,
   Check,
+  Plus,
+  FileText,
+  Presentation,
+  FileCode,
+  X,
+  RefreshCw,
 } from 'lucide-react'
 import { useUserStore } from '#/stores/useUserStore'
 
@@ -29,6 +35,7 @@ interface GeneratedExamResult {
   description: string
   tags: string[]
   questions: GeneratedQuestion[]
+  documentId?: string | null
 }
 
 const SUBJECT_OPTIONS = [
@@ -61,11 +68,198 @@ function GeneratePage() {
   const [customCount, setCustomCount] = useState<number>(8)
   const [questionTypes, setQuestionTypes] = useState<string[]>(['multiple-choice'])
 
+  // File upload states
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const xhrRef = useRef<XMLHttpRequest | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploadedDocId, setUploadedDocId] = useState<string | null>(null)
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'completed' | 'error'>('idle')
+  const [docProcessingStatus, setDocProcessingStatus] = useState<'idle' | 'processing' | 'ready' | 'failed'>('idle')
+  const [uploadProgress, setUploadProgress] = useState(0) // 0 to 100
+  const [uploadedBytes, setUploadedBytes] = useState(0)
+  const [totalBytes, setTotalBytes] = useState(0)
+  const [uploadSpeed, setUploadSpeed] = useState<string>('')
+  const [remainingTime, setRemainingTime] = useState<number | null>(null)
+  const [isSlow, setIsSlow] = useState(false)
+  const [fileError, setFileError] = useState<string | null>(null)
+
   // Status states
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<GeneratedExamResult | null>(null)
+
+  const getFileType = (name: string): 'pdf' | 'pptx' | 'docx' | null => {
+    const ext = name.split('.').pop()?.toLowerCase()
+    if (ext === 'pdf') return 'pdf'
+    if (ext === 'pptx') return 'pptx'
+    if (ext === 'docx') return 'docx'
+    return null
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    startUpload(file)
+  }
+
+  const startUpload = (file: File) => {
+    const type = getFileType(file.name)
+    if (!type) {
+      setFileError('Unsupported file type. Only PDF (.pdf), PowerPoint (.pptx), and Word (.docx) are supported.')
+      return
+    }
+
+    if (file.size > 30 * 1024 * 1024) {
+      setFileError('File exceeds maximum size limit of 30 MB.')
+      return
+    }
+
+    setSelectedFile(file)
+    setFileError(null)
+    setUploadProgress(0)
+    setUploadedBytes(0)
+    setTotalBytes(file.size)
+    setUploadStatus('uploading')
+    setDocProcessingStatus('idle')
+    setIsSlow(false)
+    setUploadSpeed('')
+    setRemainingTime(null)
+
+    fetch('/api/documents/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: file.name,
+        fileType: type,
+        fileSize: file.size,
+      }),
+    })
+      .then(async (res) => {
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to initiate upload.')
+        }
+        return data
+      })
+      .then((data) => {
+        const { documentId, uploadUrl } = data
+        setUploadedDocId(documentId)
+
+        const xhr = new XMLHttpRequest()
+        xhrRef.current = xhr
+        const startTime = Date.now()
+        let lastLoaded = 0
+        let lastTime = Date.now()
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const now = Date.now()
+            const percent = Math.min(100, Math.round((e.loaded / e.total) * 100))
+            setUploadProgress(percent)
+            setUploadedBytes(e.loaded)
+            setTotalBytes(e.total)
+
+            const elapsedSec = (now - startTime) / 1000
+            if (elapsedSec > 0.2) {
+              const speedBytesPerSec = e.loaded / elapsedSec
+              const speedMBs = (speedBytesPerSec / (1024 * 1024)).toFixed(1)
+              setUploadSpeed(`${speedMBs} MB/s`)
+
+              const remainingBytes = Math.max(0, e.total - e.loaded)
+              const sec = speedBytesPerSec > 0 ? Math.max(1, Math.round(remainingBytes / speedBytesPerSec)) : 0
+              setRemainingTime(sec)
+            }
+
+            if (now - lastTime > 4000 && e.loaded === lastLoaded && percent < 100) {
+              setIsSlow(true)
+            } else {
+              setIsSlow(false)
+            }
+            lastLoaded = e.loaded
+            lastTime = now
+          }
+        }
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            setUploadProgress(100)
+            setUploadedBytes(file.size)
+            setUploadStatus('completed')
+            setDocProcessingStatus('processing')
+            pollDocumentStatus(documentId)
+          } else {
+            let msg = 'Upload failed.'
+            try {
+              const errObj = JSON.parse(xhr.responseText)
+              msg = errObj.error || msg
+            } catch {}
+            setUploadStatus('error')
+            setFileError(msg)
+          }
+        }
+
+        xhr.onerror = () => {
+          setUploadStatus('error')
+          setFileError('Network error during upload. Please retry.')
+        }
+
+        xhr.open('PUT', uploadUrl)
+        xhr.send(file)
+      })
+      .catch((err) => {
+        setUploadStatus('error')
+        setFileError(err.message || 'Failed to initiate upload.')
+      })
+  }
+
+  const pollDocumentStatus = (docId: string) => {
+    let attempts = 0
+    const maxAttempts = 30
+    const interval = setInterval(async () => {
+      attempts++
+      try {
+        const res = await fetch(`/api/documents/${docId}/status`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.status === 'ready') {
+            setDocProcessingStatus('ready')
+            clearInterval(interval)
+          } else if (data.status === 'failed') {
+            setDocProcessingStatus('failed')
+            setFileError(data.errorMessage || 'Document processing failed.')
+            clearInterval(interval)
+          }
+        }
+      } catch {}
+
+      if (attempts >= maxAttempts) {
+        clearInterval(interval)
+      }
+    }, 1500)
+  }
+
+  const handleRemoveFile = () => {
+    if (xhrRef.current && uploadStatus === 'uploading') {
+      xhrRef.current.abort()
+    }
+    setSelectedFile(null)
+    setUploadedDocId(null)
+    setUploadStatus('idle')
+    setDocProcessingStatus('idle')
+    setUploadProgress(0)
+    setUploadedBytes(0)
+    setTotalBytes(0)
+    setFileError(null)
+    setIsSlow(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleRetryUpload = () => {
+    if (selectedFile) {
+      startUpload(selectedFile)
+    }
+  }
 
   const toggleType = (t: string) => {
     if (questionTypes.includes(t)) {
@@ -78,8 +272,19 @@ function GeneratePage() {
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!topic.trim()) {
-      setError('Please provide a topic or detailed concept description.')
+
+    if (!selectedFile && !topic.trim()) {
+      setError('Please provide a topic or upload a document.')
+      return
+    }
+
+    if (selectedFile && uploadStatus === 'uploading') {
+      setError('Please wait for the file upload to finish before generating.')
+      return
+    }
+
+    if (selectedFile && uploadStatus === 'error') {
+      setError('File upload failed. Please retry or remove the file.')
       return
     }
 
@@ -116,6 +321,7 @@ function GeneratePage() {
           difficulty,
           questionCount: effectiveCount,
           questionTypes,
+          documentId: uploadedDocId || null,
         }),
       })
 
@@ -149,6 +355,7 @@ function GeneratePage() {
             description: result.description,
             difficulty: result.difficulty,
             tags: result.tags,
+            documentId: result.documentId || uploadedDocId || null,
           },
           questions: result.questions,
         }),
@@ -203,15 +410,158 @@ function GeneratePage() {
         <form onSubmit={handleGenerate} className="gen-card p-6 sm:p-8 space-y-6">
           {/* Topic Input */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
-              Topic or Questions <span className="text-[var(--color-danger)]">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                {selectedFile ? 'Focus / Instructions' : 'Topic or Questions'}{' '}
+                {!selectedFile && <span className="text-[var(--color-danger)]">*</span>}
+              </label>
+
+              {/* Add File button directly beside the main text input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.pptx,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="btn-secondary px-2.5 py-1 text-xs flex items-center gap-1.5 cursor-pointer"
+                title="Add reference document (PDF, PPTX, DOCX)"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>Add File</span>
+              </button>
+            </div>
+
+            {/* Selected File UI ABOVE the main text input */}
+            {selectedFile && (
+              <div className="mb-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] p-3.5 flex items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Circular Progress Indicator centered around/over the file icon */}
+                  <div className="relative h-10 w-10 shrink-0 flex items-center justify-center">
+                    {uploadStatus === 'completed' ? (
+                      /* Clear GREEN CHECKMARK ✓ upon 100% completion */
+                      <div className="h-9 w-9 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                        <Check className="h-5 w-5 stroke-[2.5]" />
+                      </div>
+                    ) : (
+                      <>
+                        <svg className="absolute inset-0 h-10 w-10 -rotate-90">
+                          {/* Neutral/grey background track */}
+                          <circle
+                            cx="20"
+                            cy="20"
+                            r={16}
+                            fill="none"
+                            stroke="var(--border-subtle)"
+                            strokeWidth="2.5"
+                          />
+                          {/* Visible progress stroke */}
+                          <circle
+                            cx="20"
+                            cy="20"
+                            r={16}
+                            fill="none"
+                            stroke="var(--text-primary)"
+                            strokeWidth="2.5"
+                            strokeDasharray={2 * Math.PI * 16}
+                            strokeDashoffset={
+                              2 * Math.PI * 16 -
+                              ((2 * Math.PI * 16) * uploadProgress) / 100
+                            }
+                            strokeLinecap="round"
+                            className="transition-all duration-150"
+                          />
+                        </svg>
+                        {/* File icon centered inside ring */}
+                        <div className="relative z-10 flex items-center justify-center">
+                          {getFileType(selectedFile.name) === 'pdf' ? (
+                            <FileText className="h-4 w-4 text-red-500" />
+                          ) : getFileType(selectedFile.name) === 'pptx' ? (
+                            <Presentation className="h-4 w-4 text-amber-500" />
+                          ) : (
+                            <FileCode className="h-4 w-4 text-blue-500" />
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* File Metadata and Progress Text */}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] truncate">
+                      {selectedFile.name}
+                    </p>
+                    <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+                      {uploadStatus === 'completed' ? (
+                        <span>
+                          {(totalBytes / (1024 * 1024)).toFixed(1)} MB /{' '}
+                          {(totalBytes / (1024 * 1024)).toFixed(1)} MB · Uploaded
+                        </span>
+                      ) : uploadStatus === 'uploading' ? (
+                        <span>
+                          {(uploadedBytes / (1024 * 1024)).toFixed(1)} MB /{' '}
+                          {(totalBytes / (1024 * 1024)).toFixed(1)} MB · {uploadProgress}%
+                          {uploadSpeed ? ` · ${uploadSpeed}` : ''}
+                          {remainingTime ? ` · ~${remainingTime} sec remaining` : ''}
+                        </span>
+                      ) : uploadStatus === 'error' ? (
+                        <button
+                          type="button"
+                          onClick={handleRetryUpload}
+                          className="text-[var(--color-danger)] font-medium hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                          <span>Upload failed — tap to retry</span>
+                        </button>
+                      ) : null}
+                    </div>
+
+                    {isSlow && uploadStatus === 'uploading' && (
+                      <p className="text-[11px] text-amber-500 mt-0.5">
+                        Connection is slow. Upload still in progress...
+                      </p>
+                    )}
+
+                    {fileError && uploadStatus !== 'error' && (
+                      <p className="text-[11px] text-[var(--color-danger)] mt-0.5">
+                        {fileError}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Cancel / Remove Control */}
+                <button
+                  type="button"
+                  onClick={handleRemoveFile}
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1.5 rounded-lg transition hover:bg-[var(--bg-surface)] shrink-0 cursor-pointer"
+                  title="Remove file"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            {fileError && !selectedFile && (
+              <div className="mb-3 p-2.5 rounded-lg bg-[var(--color-danger-subtle)] text-[var(--color-danger)] text-xs flex items-center gap-2">
+                <HelpCircle className="h-3.5 w-3.5 shrink-0" />
+                <span>{fileError}</span>
+              </div>
+            )}
+
             <textarea
               rows={2}
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="Enter a topic, concept, or specific questions you want tested..."
-              required
+              placeholder={
+                selectedFile && uploadStatus === 'completed'
+                  ? 'Anything to focus on? e.g. weight more on chapter 4, section 2 (optional)'
+                  : 'Enter a topic, concept, or specific questions you want tested...'
+              }
+              required={!selectedFile}
               className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--border-strong)] focus:ring-1 focus:ring-[var(--border-strong)] transition resize-y min-h-[64px]"
             />
           </div>
@@ -411,7 +761,11 @@ function GeneratePage() {
           {/* Generate Button */}
           <button
             type="submit"
-            disabled={loading || !topic.trim()}
+            disabled={
+              loading ||
+              (!topic.trim() && !selectedFile) ||
+              (selectedFile !== null && uploadStatus !== 'completed')
+            }
             className="w-full btn-primary py-3 flex items-center justify-center gap-2 text-sm shadow-md disabled:opacity-50 cursor-pointer"
           >
             {loading ? (

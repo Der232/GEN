@@ -2,6 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 // @ts-ignore
 import { env } from 'cloudflare:workers'
 import { z } from 'zod'
+import { db } from '#/db'
+import { documents } from '#/db/schema'
+import { eq } from 'drizzle-orm'
 
 const GeneratedQuestionSchema = z.object({
   order: z.number(),
@@ -19,6 +22,7 @@ const GeneratedExamSchema = z.object({
   description: z.string(),
   tags: z.array(z.string()),
   questions: z.array(GeneratedQuestionSchema),
+  documentId: z.string().optional().nullable(),
 })
 
 export type GeneratedExam = z.infer<typeof GeneratedExamSchema>
@@ -35,13 +39,41 @@ export const Route = createFileRoute('/api/exam/generate')({
             difficulty = 'medium',
             questionCount = 5,
             questionTypes = ['multiple-choice'],
+            documentId,
           } = body
 
-          if (!topic || typeof topic !== 'string' || topic.trim().length === 0) {
-            return new Response(JSON.stringify({ error: 'Topic or question description is required.' }), {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' },
+          let docRecord: any = null
+          if (documentId) {
+            docRecord = await db.query.documents.findFirst({
+              where: eq(documents.id, documentId),
             })
+            if (!docRecord) {
+              return new Response(JSON.stringify({ error: 'Uploaded document not found.' }), {
+                status: 404,
+                headers: { 'Content-Type': 'application/json' },
+              })
+            }
+            if (docRecord.status !== 'ready' || !docRecord.extractedText) {
+              return new Response(
+                JSON.stringify({
+                  error:
+                    docRecord.status === 'failed'
+                      ? `Document extraction failed: ${docRecord.errorMessage || 'Unable to extract text'}`
+                      : 'Document is still being prepared. Please wait a moment and try again.',
+                }),
+                { status: 400, headers: { 'Content-Type': 'application/json' } }
+              )
+            }
+          }
+
+          if (!docRecord && (!topic || typeof topic !== 'string' || topic.trim().length === 0)) {
+            return new Response(
+              JSON.stringify({ error: 'Please provide a topic or upload a document.' }),
+              {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+              }
+            )
           }
 
           const count = Math.min(Math.max(Number(questionCount) || 5, 1), 30)
@@ -57,8 +89,12 @@ export const Route = createFileRoute('/api/exam/generate')({
           const isAutoDetect = !subject || subject.trim() === '' || subject === 'Auto-Detect'
           const cleanSubject = isAutoDetect ? '' : subject.trim()
 
+          const sourceContent = docRecord
+            ? (docRecord.extractedText || '').slice(0, 35000)
+            : null
+
           const systemPrompt = `You are an expert academic test developer and curriculum designer.
-Generate an exam based on the user's topic or questions in strict JSON format.
+Generate an exam based on the user's ${docRecord ? 'provided source document and focus instructions' : 'topic or questions'} in strict JSON format.
 
 CRITICAL JSON SCHEMA REQUIREMENT:
 Your response must be a single valid JSON object with EXACTLY this structure:
@@ -94,15 +130,43 @@ ${
 5. SUBJECT SPECIFICATION:
 ${
   isAutoDetect
-    ? `   - The user did not specify a subject. You MUST carefully analyze the user's detailed topic, concept, questions, or notes and automatically deduce the most fitting academic subject or discipline (e.g., "Computer Science", "Biochemistry", "Microeconomics", "Discrete Mathematics", "World History"). Set the "subject" field in the JSON response to your accurately detected subject name.`
-    : `   - The user explicitly specified the subject/category: "${cleanSubject}". You MUST contextualize the entire exam, question terminology, concepts, and conventions strictly within this subject/category. Set the "subject" field in the JSON response to "${cleanSubject}".`
+    ? `   - Deduced academic discipline: You MUST carefully analyze the material and automatically deduce the most fitting academic subject or discipline (e.g., "Computer Science", "Biochemistry", "Microeconomics", "Discrete Mathematics", "World History"). Set the "subject" field in the JSON response to your accurately detected subject name.`
+    : `   - Explicit discipline: The user specified "${cleanSubject}". Contextualize all questions and terminology within this subject.`
 }
 6. DIFFICULTY: The difficulty is "${difficulty}". Ensure the problem depth, vocabulary, and conceptual challenge accurately match this level.
-7. Return ONLY pure JSON. No markdown backticks, no introduction, no conversational filler.`
+${
+  docRecord
+    ? `7. SOURCE MATERIAL FIDELITY: All questions, answers, and explanations MUST be strictly derived from and faithful to the provided SOURCE MATERIAL. Do NOT make up facts not mentioned in the source material.
+${topic && topic.trim() ? `8. FOCUS INSTRUCTION: The user provided this focus instruction: "${topic.trim()}". Weight questions more heavily towards these requested concepts while staying completely faithful to the source material.` : ''}`
+    : ''
+}
+8. Return ONLY pure JSON. No markdown backticks, no introduction, no conversational filler.`
 
-          const userPrompt = `DETAILED TOPIC / CONCEPT SPECIFICATION FROM USER:
+          const userPrompt = docRecord
+            ? `SOURCE MATERIAL (Extracted from uploaded file: ${docRecord.filename}):
+"""
+${sourceContent}
+"""
+
+${
+  topic && topic.trim()
+    ? `USER FOCUS & PREFERENCE INSTRUCTION:
 """
 ${topic.trim()}
+"""`
+    : 'Please generate a comprehensive exam covering the key concepts in this source material.'
+}
+
+TARGET SPECIFICATIONS:
+- Target Subject / Category: ${isAutoDetect ? 'Auto-Detect from document' : cleanSubject}
+- Target Difficulty: ${difficulty}
+- Total Questions: ${count}
+- Allowed Question Formats: ${typesDesc}
+
+Please generate the complete exam in the required JSON format.`
+            : `DETAILED TOPIC / CONCEPT SPECIFICATION FROM USER:
+"""
+${(topic || '').trim()}
 """
 
 TARGET SPECIFICATIONS:
@@ -160,6 +224,9 @@ Please generate the complete exam in the required JSON format.`
           }
 
           const parsed = JSON.parse(rawContent)
+          if (docRecord?.id) {
+            parsed.documentId = docRecord.id
+          }
           const validated = GeneratedExamSchema.parse(parsed)
 
           return new Response(JSON.stringify(validated), {

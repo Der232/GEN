@@ -83,6 +83,7 @@ export const Route = createFileRoute('/api/exams/')({
           await db.insert(exams).values({
             id: examId,
             userId,
+            documentId: exam.documentId || null,
             authorDisplayName,
             title: exam.title,
             subject: exam.subject,

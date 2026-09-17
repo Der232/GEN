@@ -81,6 +81,9 @@ export const auth = betterAuth({
           db.update(schema.attempts)
             .set({ userId: newId })
             .where(eq(schema.attempts.userId, anonId)),
+          db.update(schema.documents)
+            .set({ userId: newId })
+            .where(eq(schema.documents.userId, anonId)),
         ])
       },
     }),
