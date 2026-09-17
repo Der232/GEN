@@ -74,24 +74,16 @@ function AccountPage() {
       {/* Main Identity Card */}
       <div className="gen-card p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
+            <div>
               <h2 className="font-heading text-xl font-bold text-[var(--text-primary)]">
                 {accountName}
               </h2>
-              {!isAnon && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold badge-success">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-success)]" />
-                  Registered
-                </span>
+              {!isAnon && user?.email && (
+                <p className="text-xs text-[var(--text-secondary)] mt-1 font-mono">
+                  {user.email}
+                </p>
               )}
             </div>
-            {!isAnon && user?.email && (
-              <p className="text-xs text-[var(--text-secondary)] mt-1 font-mono">
-                {user.email}
-              </p>
-            )}
-          </div>
 
           <div className="flex items-center gap-2">
             {!isAnon ? (

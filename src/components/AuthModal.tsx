@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { authClient, useSession } from '#/lib/auth-client'
 import {
   X,
@@ -71,6 +72,11 @@ export default function AuthModal({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [generalError, setGeneralError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Sync initial view when modal opens
   useEffect(() => {
@@ -90,7 +96,7 @@ export default function AuthModal({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [open, onClose])
 
-  if (!open) return null
+  if (!open || !mounted) return null
 
   const resetForm = () => {
     setName('')
@@ -200,11 +206,16 @@ export default function AuthModal({
     }
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Frosted Glass Backdrop */}
       <div
         className="absolute inset-0 modal-backdrop-frosted transition-opacity duration-200"
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.45)',
+          backdropFilter: 'blur(12px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        }}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -633,6 +644,7 @@ export default function AuthModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
