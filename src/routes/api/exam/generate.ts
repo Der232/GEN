@@ -188,48 +188,72 @@ Please generate the complete exam in the required JSON format.`
             )
           }
 
-          const groqResponse = await fetch(`${groqBaseUrl}/chat/completions`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${groqApiKey}`,
-            },
-            body: JSON.stringify({
-              model: 'qwen/qwen3.8-27b',
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt },
-              ],
-              response_format: { type: 'json_object' },
-              temperature: 0.6,
-              max_tokens: 8192,
-            }),
-          })
+          const CANDIDATE_MODELS = [
+            'openai/gpt-oss-120b',
+            'openai/gpt-oss-20b',
+            'groq/compound-mini',
+            'groq/compound',
+            'qwen/qwen3.8-27b',
+          ]
 
-          if (!groqResponse.ok) {
-            const errText = await groqResponse.text()
-            console.error('Groq API error:', errText)
+          let lastError = 'Failed to generate exam with AI provider.'
+          let validated: GeneratedExam | null = null
+
+          for (const model of CANDIDATE_MODELS) {
+            try {
+              console.log(`[ExamGen] Attempting generation with model: ${model}`)
+              const groqResponse = await fetch(`${groqBaseUrl}/chat/completions`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${groqApiKey}`,
+                },
+                body: JSON.stringify({
+                  model,
+                  messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt },
+                  ],
+                  response_format: { type: 'json_object' },
+                  temperature: 0.5,
+                  max_tokens: 8192,
+                }),
+              })
+
+              if (!groqResponse.ok) {
+                const errText = await groqResponse.text()
+                console.warn(`[ExamGen] Model ${model} failed (${groqResponse.status}):`, errText)
+                lastError = `Model ${model} (${groqResponse.status}): ${errText}`
+                continue // Cascade to next model
+              }
+
+              const groqData: any = await groqResponse.json()
+              const rawContent = groqData.choices?.[0]?.message?.content
+
+              if (!rawContent) {
+                console.warn(`[ExamGen] Model ${model} returned empty content`)
+                continue
+              }
+
+              const parsed = JSON.parse(rawContent)
+              if (docRecord?.id) {
+                parsed.documentId = docRecord.id
+              }
+              validated = GeneratedExamSchema.parse(parsed)
+              console.log(`[ExamGen] Successfully generated ${validated.questions.length} questions using ${model}`)
+              break // Successfully generated and validated!
+            } catch (err: any) {
+              console.warn(`[ExamGen] Error with model ${model}:`, err.message)
+              lastError = err.message || lastError
+            }
+          }
+
+          if (!validated) {
             return new Response(
-              JSON.stringify({ error: 'Failed to generate exam with AI provider.' }),
+              JSON.stringify({ error: `AI generation failed across all available models. Details: ${lastError}` }),
               { status: 502, headers: { 'Content-Type': 'application/json' } },
             )
           }
-
-          const groqData: any = await groqResponse.json()
-          const rawContent = groqData.choices?.[0]?.message?.content
-
-          if (!rawContent) {
-            return new Response(
-              JSON.stringify({ error: 'Empty response received from AI.' }),
-              { status: 502, headers: { 'Content-Type': 'application/json' } },
-            )
-          }
-
-          const parsed = JSON.parse(rawContent)
-          if (docRecord?.id) {
-            parsed.documentId = docRecord.id
-          }
-          const validated = GeneratedExamSchema.parse(parsed)
 
           return new Response(JSON.stringify(validated), {
             status: 200,

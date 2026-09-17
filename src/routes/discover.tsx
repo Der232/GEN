@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import { Compass, Search, Filter, Play, User, Loader2 } from 'lucide-react'
+import { Compass, Search, Filter, Play, User, Loader2, Sparkles } from 'lucide-react'
+import PracticeSetupModal from '#/components/PracticeSetupModal'
 
 export const Route = createFileRoute('/discover')({ component: DiscoverPage })
 
@@ -28,11 +29,14 @@ const SUBJECT_FILTERS = [
 ]
 
 function DiscoverPage() {
+  const navigate = useNavigate()
   const [exams, setExams] = useState<PublicExam[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedSubject, setSelectedSubject] = useState('All')
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('All')
+  const [selectedExamForPractice, setSelectedExamForPractice] = useState<PublicExam | null>(null)
+  const [startingPractice, setStartingPractice] = useState(false)
 
   useEffect(() => {
     fetch('/api/exams?discover=true')
@@ -58,6 +62,39 @@ function DiscoverPage() {
 
     return matchesSearch && matchesSubject && matchesDifficulty
   })
+
+  const handleStartPractice = async (
+    batch: 'all' | '5' | '1',
+    mode: 'instant' | 'exam'
+  ) => {
+    if (!selectedExamForPractice) return
+    setStartingPractice(true)
+
+    try {
+      const res = await fetch('/api/attempts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ examId: selectedExamForPractice.id }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to start practice session.')
+
+      setSelectedExamForPractice(null)
+      navigate({
+        to: '/practice/$attemptId',
+        params: { attemptId: data.attemptId },
+        search: {
+          batch,
+          mode,
+        },
+      })
+    } catch (err: any) {
+      alert(err.message || 'Failed to start practice session.')
+    } finally {
+      setStartingPractice(false)
+    }
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 animate-fade-in">
@@ -152,11 +189,9 @@ function DiscoverPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredExams.map((ex) => (
-            <Link
+            <div
               key={ex.id}
-              to="/exam/$examId"
-              params={{ examId: ex.id }}
-              className="gen-card gen-card-hover p-5 flex flex-col justify-between no-underline group cursor-pointer"
+              className="gen-card gen-card-hover p-5 flex flex-col justify-between group"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2.5">
@@ -176,9 +211,13 @@ function DiscoverPage() {
                   </span>
                 </div>
 
-                <h3 className="font-heading text-base font-bold text-[var(--text-primary)] mb-1.5 line-clamp-2 group-hover:underline">
+                <Link
+                  to="/exam/$examId"
+                  params={{ examId: ex.id }}
+                  className="font-heading text-base font-bold text-[var(--text-primary)] mb-1.5 line-clamp-2 no-underline hover:underline cursor-pointer block"
+                >
                   {ex.title}
-                </h3>
+                </Link>
 
                 <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mb-4 leading-relaxed">
                   {ex.description || 'Comprehensive test questions covering core concepts and problem solving.'}
@@ -193,17 +232,29 @@ function DiscoverPage() {
                   <span>{ex.questionCount}Q</span>
                 </div>
 
-                <span
-                  className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1 font-semibold group-hover:bg-[var(--btn-primary-hover)] transition-colors"
+                <button
+                  type="button"
+                  onClick={() => setSelectedExamForPractice(ex)}
+                  className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1 font-semibold cursor-pointer"
                 >
                   <Play className="h-3 w-3 fill-current" />
                   <span>Practice</span>
-                </span>
+                </button>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}
+
+      {/* Unified Practice Launch Setup Modal (Portaled to Body) */}
+      <PracticeSetupModal
+        open={!!selectedExamForPractice}
+        onClose={() => setSelectedExamForPractice(null)}
+        onStart={handleStartPractice}
+        starting={startingPractice}
+        examTitle={selectedExamForPractice?.title}
+        totalQuestions={selectedExamForPractice?.questionCount}
+      />
     </div>
   )
 }

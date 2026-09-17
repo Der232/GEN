@@ -49,34 +49,61 @@ ${explanation || 'N/A'}`
             userContent += `\n\nSTUDENT'S FOLLOW-UP QUESTION:\n${followUp}`
           }
 
-          const groqResponse = await fetch(`${groqBaseUrl}/chat/completions`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${groqApiKey}`,
-            },
-            body: JSON.stringify({
-              model: 'qwen/qwen3.8-27b',
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userContent },
-              ],
-              temperature: 0.5,
-              max_tokens: 800,
-            }),
-          })
+          const CANDIDATE_MODELS = [
+            'openai/gpt-oss-120b',
+            'openai/gpt-oss-20b',
+            'groq/compound-mini',
+            'groq/compound',
+            'qwen/qwen3.8-27b',
+          ]
 
-          if (!groqResponse.ok) {
-            const err = await groqResponse.text()
-            console.error('Groq explanation error:', err)
-            return new Response(JSON.stringify({ error: 'Explanation failed' }), {
+          let explanationText: string | null = null
+          let lastError = 'Explanation failed.'
+
+          for (const model of CANDIDATE_MODELS) {
+            try {
+              const groqResponse = await fetch(`${groqBaseUrl}/chat/completions`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${groqApiKey}`,
+                },
+                body: JSON.stringify({
+                  model,
+                  messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userContent },
+                  ],
+                  temperature: 0.5,
+                  max_tokens: 1200,
+                }),
+              })
+
+              if (!groqResponse.ok) {
+                const err = await groqResponse.text()
+                console.warn(`[Explain] Model ${model} failed (${groqResponse.status}):`, err)
+                lastError = err
+                continue
+              }
+
+              const data: any = await groqResponse.json()
+              const content = data.choices?.[0]?.message?.content
+              if (content) {
+                explanationText = content
+                break
+              }
+            } catch (err: any) {
+              console.warn(`[Explain] Error with model ${model}:`, err.message)
+              lastError = err.message || lastError
+            }
+          }
+
+          if (!explanationText) {
+            return new Response(JSON.stringify({ error: `Explanation failed across all models: ${lastError}` }), {
               status: 502,
               headers: { 'Content-Type': 'application/json' },
             })
           }
-
-          const data: any = await groqResponse.json()
-          const explanationText = data.choices?.[0]?.message?.content || 'No explanation available.'
 
           return new Response(JSON.stringify({ explanation: explanationText }), {
             status: 200,

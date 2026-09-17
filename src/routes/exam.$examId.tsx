@@ -13,6 +13,7 @@ import {
   Award,
 } from 'lucide-react'
 import { useExamPerformanceStore } from '#/stores/useExamPerformanceStore'
+import PracticeSetupModal from '#/components/PracticeSetupModal'
 
 export const Route = createFileRoute('/exam/$examId')({ component: ExamDetailPage })
 
@@ -43,7 +44,7 @@ function ExamDetailPage() {
   const [questions, setQuestions] = useState<QuestionOutline[]>([])
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
-  const [batchSize, setBatchSize] = useState<number>(1) // 1, 5, 10, or all
+  const [isPracticeModalOpen, setIsPracticeModalOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   const examHistory = useExamPerformanceStore((state) => state.examHistory[examId])
@@ -65,7 +66,10 @@ function ExamDetailPage() {
       .finally(() => setLoading(false))
   }, [examId])
 
-  const handleStart = async () => {
+  const handleStartPractice = async (
+    batch: 'all' | '5' | '1',
+    mode: 'instant' | 'exam'
+  ) => {
     if (!exam) return
     setStarting(true)
 
@@ -79,13 +83,18 @@ function ExamDetailPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to start practice')
 
+      setIsPracticeModalOpen(false)
       navigate({
         to: '/practice/$attemptId',
         params: { attemptId: data.attemptId },
-        search: { batch: batchSize },
+        search: {
+          batch,
+          mode,
+        },
       })
     } catch (err: any) {
       alert(err.message || 'Error starting exam attempt')
+    } finally {
       setStarting(false)
     }
   }
@@ -179,91 +188,35 @@ function ExamDetailPage() {
         </div>
       </div>
 
-      {/* Practice Configuration */}
-      <div className="gen-card p-6 space-y-4">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
-          Practice Mode Settings
-        </h2>
-
+      {/* Practice Launch Card */}
+      <div className="gen-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-l-4 border-l-[var(--border-strong)]">
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-xs font-medium text-[var(--text-secondary)]">
-              Question Batching:
-            </label>
-            <span className="text-[11px] text-[var(--text-muted)]">
-              Exam has {exam.questionCount} questions
-            </span>
-          </div>
+          <h2 className="text-base font-bold text-[var(--text-primary)]">
+            Ready to test your knowledge?
+          </h2>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+            Configure question delivery and choose between instant feedback or full exam mode.
+          </p>
+        </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[
-              { label: '1 at a time', val: 1 },
-              { label: '5 at a time', val: 5 },
-              { label: '10 at a time', val: 10 },
-              { label: 'All at once', val: exam.questionCount },
-            ].map((option) => {
-              const exceeds = option.val > exam.questionCount && option.val !== exam.questionCount
-              const isSelected = batchSize === option.val
-              return (
-                <button
-                  key={option.label}
-                  type="button"
-                  onClick={() => setBatchSize(option.val)}
-                  className={`
-                    py-2.5 px-3 rounded-xl text-xs font-medium transition-all text-center cursor-pointer border
-                    ${
-                      isSelected
-                        ? exceeds
-                          ? 'border-[var(--color-danger)] bg-[var(--color-danger-subtle)] text-[var(--color-danger)] font-bold ring-1 ring-[var(--color-danger)]'
-                          : 'btn-primary font-bold'
-                        : exceeds
-                        ? 'border-[rgba(239,68,68,0.35)] text-[var(--color-danger)]/80 bg-[var(--bg-surface-elevated)]'
-                        : 'btn-secondary text-[var(--text-secondary)]'
-                    }
-                  `}
-                >
-                  {option.label}
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Validation Warning when selected batch exceeds total questions */}
-          {batchSize > exam.questionCount && (
-            <div className="mt-3 p-3 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.35)] text-xs text-[var(--color-danger)] flex items-center gap-2 animate-fade-in">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>
-                Selected choice ({batchSize} at a time) exceeds total questions in this exam ({exam.questionCount}Q). Please choose a smaller batch size to proceed.
-              </span>
-            </div>
+        <button
+          type="button"
+          onClick={() => setIsPracticeModalOpen(true)}
+          disabled={starting}
+          className="btn-primary px-6 py-2.5 text-xs flex items-center justify-center gap-2 font-semibold shadow-md cursor-pointer shrink-0"
+        >
+          {starting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Preparing Session...</span>
+            </>
+          ) : (
+            <>
+              <Play className="h-4 w-4 fill-current" />
+              <span>Start Practice</span>
+            </>
           )}
-        </div>
-
-        <div className="pt-2">
-          <button
-            onClick={handleStart}
-            disabled={starting || batchSize > exam.questionCount}
-            className={`w-full py-3.5 text-sm flex items-center justify-center gap-2 font-semibold shadow-md transition-all ${
-              batchSize > exam.questionCount
-                ? 'bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] border border-[var(--border-subtle)] cursor-not-allowed opacity-50'
-                : 'btn-primary cursor-pointer disabled:opacity-50'
-            }`}
-          >
-            {starting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Preparing test session...</span>
-              </>
-            ) : batchSize > exam.questionCount ? (
-              <span>Exceeds Question Count — Select Smaller Batch</span>
-            ) : (
-              <>
-                <Play className="h-4 w-4 fill-current" />
-                <span>Start Practice</span>
-              </>
-            )}
-          </button>
-        </div>
+        </button>
       </div>
 
       {/* Questions Included Card */}
@@ -293,6 +246,16 @@ function ExamDetailPage() {
           ))}
         </div>
       </div>
+
+      {/* Unified Practice Launch Setup Modal (Portaled to Body) */}
+      <PracticeSetupModal
+        open={isPracticeModalOpen}
+        onClose={() => setIsPracticeModalOpen(false)}
+        onStart={handleStartPractice}
+        starting={starting}
+        examTitle={exam.title}
+        totalQuestions={exam.questionCount}
+      />
     </div>
   )
 }

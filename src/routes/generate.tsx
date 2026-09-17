@@ -19,6 +19,7 @@ import {
   Edit3,
 } from 'lucide-react'
 import { useUserStore } from '#/stores/useUserStore'
+import PracticeSetupModal from '#/components/PracticeSetupModal'
 
 export const Route = createFileRoute('/generate')({ component: GeneratePage })
 
@@ -94,10 +95,8 @@ function GeneratePage() {
   const [result, setResult] = useState<GeneratedExamResult | null>(null)
   const [savedExamId, setSavedExamId] = useState<string | null>(null)
 
-  // Practice launch modal states
+  // Practice launch modal state
   const [isPracticeModalOpen, setIsPracticeModalOpen] = useState(false)
-  const [practiceBatch, setPracticeBatch] = useState<'all' | '5' | '1'>('all')
-  const [practiceMode, setPracticeMode] = useState<'instant' | 'exam'>('instant')
 
   const getFileType = (name: string): 'pdf' | 'pptx' | 'docx' | null => {
     const ext = name.split('.').pop()?.toLowerCase()
@@ -426,7 +425,10 @@ function GeneratePage() {
     }
   }
 
-  const handleStartPractice = async () => {
+  const handleStartPractice = async (
+    batch: 'all' | '5' | '1' = 'all',
+    mode: 'instant' | 'exam' = 'instant'
+  ) => {
     if (!result) return
     setSaving(true)
     setError(null)
@@ -470,8 +472,8 @@ function GeneratePage() {
         to: '/practice/$attemptId',
         params: { attemptId: attData.attemptId },
         search: {
-          batch: practiceBatch,
-          mode: practiceMode,
+          batch,
+          mode,
         },
       })
     } catch (err: any) {
@@ -869,7 +871,7 @@ function GeneratePage() {
       ) : (
         /* ─── Generated Exam Preview ─── */
         <div className="space-y-6">
-          <div className="gen-card p-6 border-l-4 border-l-[var(--border-strong)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="gen-card p-6 border-l-4 border-l-[var(--border-strong)] flex flex-col gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold badge-neutral">
@@ -893,18 +895,18 @@ function GeneratePage() {
               <h2 className="font-heading text-xl font-bold text-[var(--text-primary)]">
                 {result.title}
               </h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-xl">
+              <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
                 {result.description}
               </p>
             </div>
 
-            {/* Quick CTA Actions */}
-            <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
+            {/* Quick CTA Actions below text */}
+            <div className="flex items-center gap-2.5 pt-3.5 border-t border-[var(--border-subtle)] flex-wrap">
               <button
                 type="button"
                 onClick={() => setResult(null)}
                 disabled={saving || isRegenerating}
-                className="btn-secondary px-3 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
+                className="btn-secondary px-3.5 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
                 title="Edit parameters in form"
               >
                 <Edit3 className="h-3.5 w-3.5" />
@@ -914,7 +916,7 @@ function GeneratePage() {
                 type="button"
                 onClick={handleRegenerate}
                 disabled={saving || isRegenerating}
-                className="btn-secondary px-3 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
+                className="btn-secondary px-3.5 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
                 title="Regenerate fresh questions in place"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isRegenerating ? 'animate-spin' : ''}`} />
@@ -924,7 +926,7 @@ function GeneratePage() {
                 type="button"
                 onClick={handleSaveToLibrary}
                 disabled={saving || isRegenerating}
-                className="btn-secondary px-3.5 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
+                className="btn-secondary px-4 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <Bookmark className="h-3.5 w-3.5" />
                 <span>Save to Library</span>
@@ -933,7 +935,7 @@ function GeneratePage() {
                 type="button"
                 onClick={() => setIsPracticeModalOpen(true)}
                 disabled={saving || isRegenerating}
-                className="btn-primary px-4 py-2 text-xs flex items-center gap-1.5 cursor-pointer font-semibold shadow-sm"
+                className="btn-primary px-5 py-2 text-xs flex items-center gap-1.5 cursor-pointer font-semibold shadow-sm"
               >
                 <Play className="h-3.5 w-3.5 fill-current" />
                 <span>Start Practice</span>
@@ -996,156 +998,15 @@ function GeneratePage() {
         </div>
       )}
 
-      {/* ─── Practice Launch Setup Modal ─── */}
-      {isPracticeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="gen-card max-w-md w-full p-6 space-y-6 shadow-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)]">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-[var(--text-primary)]">
-                  Practice Session Setup
-                </h3>
-                <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                  Choose your question delivery and grading system
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsPracticeModalOpen(false)}
-                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg transition hover:bg-[var(--bg-surface-elevated)] cursor-pointer"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Section 1: Question Batching */}
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-                Question Delivery
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'all', label: 'All at once' },
-                  { id: '5', label: '5 at a time' },
-                  { id: '1', label: '1 at a time' },
-                ].map((b) => (
-                  <button
-                    key={b.id}
-                    type="button"
-                    onClick={() => setPracticeBatch(b.id as any)}
-                    className={`py-2.5 px-2 rounded-xl text-xs font-medium border text-center transition cursor-pointer ${
-                      practiceBatch === b.id
-                        ? 'btn-primary font-bold'
-                        : 'btn-secondary text-[var(--text-secondary)]'
-                    }`}
-                  >
-                    {b.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Section 2: Grading & Feedback System */}
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-                Grading & Feedback
-              </label>
-              <div className="grid grid-cols-1 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setPracticeMode('instant')}
-                  className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-3 ${
-                    practiceMode === 'instant'
-                      ? 'bg-[var(--bg-surface-elevated)] border-2 border-[var(--border-strong)] ring-1 ring-[var(--border-strong)]'
-                      : 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)]'
-                  }`}
-                >
-                  <div className="mt-0.5">
-                    <div
-                      className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${
-                        practiceMode === 'instant'
-                          ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-main)]'
-                          : 'border-[var(--border-strong)]'
-                      }`}
-                    >
-                      {practiceMode === 'instant' && <div className="h-1.5 w-1.5 rounded-full bg-[var(--bg-main)]" />}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                      <span>Instant Feedback Mode</span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded badge-success">Recommended</span>
-                    </div>
-                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-relaxed">
-                      Reveals right/wrong answers and concise explanations immediately upon selection, with on-demand AI tutor breakdowns.
-                    </p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPracticeMode('exam')}
-                  className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-3 ${
-                    practiceMode === 'exam'
-                      ? 'bg-[var(--bg-surface-elevated)] border-2 border-[var(--border-strong)] ring-1 ring-[var(--border-strong)]'
-                      : 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)]'
-                  }`}
-                >
-                  <div className="mt-0.5">
-                    <div
-                      className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${
-                        practiceMode === 'exam'
-                          ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-main)]'
-                          : 'border-[var(--border-strong)]'
-                      }`}
-                    >
-                      {practiceMode === 'exam' && <div className="h-1.5 w-1.5 rounded-full bg-[var(--bg-main)]" />}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-xs font-bold text-[var(--text-primary)]">
-                      Exam Mode
-                    </div>
-                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-relaxed">
-                      Standard test conditions. Keeps answers silent until submission, then delivers full score and detailed analytics.
-                    </p>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => setIsPracticeModalOpen(false)}
-                disabled={saving}
-                className="btn-secondary px-4 py-2 text-xs cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleStartPractice}
-                disabled={saving}
-                className="btn-primary px-5 py-2 text-xs flex items-center gap-2 cursor-pointer font-semibold shadow-sm"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>Preparing Session...</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-3.5 w-3.5 fill-current" />
-                    <span>Start Practice Now</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ─── Unified Practice Launch Setup Modal (Portaled to Body) ─── */}
+      <PracticeSetupModal
+        open={isPracticeModalOpen}
+        onClose={() => setIsPracticeModalOpen(false)}
+        onStart={handleStartPractice}
+        starting={saving}
+        examTitle={result?.title}
+        totalQuestions={result?.questions.length}
+      />
     </div>
   )
 }

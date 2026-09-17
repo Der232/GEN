@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { BookOpen, Play, Trash2, Loader2, Calendar } from 'lucide-react'
 import { useUserStore } from '#/stores/useUserStore'
+import PracticeSetupModal from '#/components/PracticeSetupModal'
 
 export const Route = createFileRoute('/my-exams')({ component: MyExamsPage })
 
@@ -16,9 +17,12 @@ interface UserExam {
 }
 
 function MyExamsPage() {
+  const navigate = useNavigate()
   const [exams, setExams] = useState<UserExam[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [selectedExamForPractice, setSelectedExamForPractice] = useState<UserExam | null>(null)
+  const [startingPractice, setStartingPractice] = useState(false)
 
   const fetchMyExams = () => {
     fetch('/api/exams')
@@ -48,6 +52,40 @@ function MyExamsPage() {
       alert('Failed to delete exam.')
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  const handleStartPractice = async (
+    batch: 'all' | '5' | '1',
+    mode: 'instant' | 'exam'
+  ) => {
+    if (!selectedExamForPractice) return
+    setStartingPractice(true)
+
+    try {
+      const res = await fetch('/api/attempts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ examId: selectedExamForPractice.id }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to start practice session.')
+
+      const examToClear = selectedExamForPractice
+      setSelectedExamForPractice(null)
+      navigate({
+        to: '/practice/$attemptId',
+        params: { attemptId: data.attemptId },
+        search: {
+          batch,
+          mode,
+        },
+      })
+    } catch (err: any) {
+      alert(err.message || 'Failed to start practice session.')
+    } finally {
+      setStartingPractice(false)
     }
   }
 
@@ -114,9 +152,13 @@ function MyExamsPage() {
                   </span>
                 </div>
 
-                <h3 className="font-heading text-base font-bold text-[var(--text-primary)] mb-1.5 line-clamp-2">
+                <Link
+                  to="/exam/$examId"
+                  params={{ examId: ex.id }}
+                  className="font-heading text-base font-bold text-[var(--text-primary)] mb-1.5 line-clamp-2 no-underline hover:underline cursor-pointer block"
+                >
                   {ex.title}
-                </h3>
+                </Link>
 
                 <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mb-4 leading-relaxed">
                   {ex.description || 'Custom generated practice questions and explanations.'}
@@ -142,20 +184,30 @@ function MyExamsPage() {
                     )}
                   </button>
 
-                  <Link
-                    to="/exam/$examId"
-                    params={{ examId: ex.id }}
-                    className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5 no-underline font-semibold"
+                  <button
+                    type="button"
+                    onClick={() => setSelectedExamForPractice(ex)}
+                    className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5 font-semibold cursor-pointer"
                   >
                     <Play className="h-3 w-3 fill-current" />
                     <span>Practice</span>
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Unified Practice Launch Setup Modal (Portaled to Body) */}
+      <PracticeSetupModal
+        open={!!selectedExamForPractice}
+        onClose={() => setSelectedExamForPractice(null)}
+        onStart={handleStartPractice}
+        starting={startingPractice}
+        examTitle={selectedExamForPractice?.title}
+        totalQuestions={selectedExamForPractice?.questionCount}
+      />
     </div>
   )
 }
