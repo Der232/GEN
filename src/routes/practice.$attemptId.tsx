@@ -9,6 +9,7 @@ import {
   Sparkles,
   CheckCircle2,
   XCircle,
+  Lock,
 } from 'lucide-react'
 import { useExamSessionStore } from '#/stores/useExamSessionStore'
 import { useUserStore } from '#/stores/useUserStore'
@@ -148,6 +149,11 @@ function PracticePage() {
   const isLastBatch = currentBatchIndex >= totalBatches - 1
 
   const handleSelectAnswer = async (questionId: string, answer: string) => {
+    // In Instant Feedback Mode, once an answer is chosen, it is permanently locked in
+    if (isInstantMode && userAnswers[questionId]) {
+      return
+    }
+
     // 1. Update Zustand store immediately (persists to localStorage)
     setAnswer(questionId, answer)
 
@@ -252,16 +258,20 @@ function PracticePage() {
       </div>
 
       {/* Notice on exam rules */}
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[11px] text-[var(--text-muted)]">
+      <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)]">
         {isInstantMode ? (
           <>
-            <Sparkles className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-            <span>Instant Feedback Mode: Select an answer to verify immediately with concise explanations and AI tutoring.</span>
+            <Sparkles className="h-4 w-4 text-emerald-500 shrink-0" />
+            <span>
+              <strong>Instant Feedback Mode:</strong> Answers are permanently locked in upon selection with instant verification and AI tutoring.
+            </span>
           </>
         ) : (
           <>
-            <AlertTriangle className="h-3.5 w-3.5 text-[var(--color-warning)] shrink-0" />
-            <span>Exam Mode: Answers remain hidden until submission. Full score and detailed review appear at the end.</span>
+            <AlertTriangle className="h-4 w-4 text-[var(--color-warning)] shrink-0" />
+            <span>
+              <strong>Exam Mode:</strong> You can adjust answers freely within the current batch. Once a batch is submitted, answers are permanently locked in and you cannot go back.
+            </span>
           </>
         )}
       </div>
@@ -272,6 +282,8 @@ function PracticePage() {
           const globalNumber = currentBatchIndex * batchSize + idx + 1
           const selectedAnswer = userAnswers[q.id] || ''
 
+          const isQuestionLocked = isInstantMode && Boolean(selectedAnswer)
+
           return (
             <div key={q.id} className="gen-card p-6 space-y-4">
               <div className="flex items-start gap-3">
@@ -279,9 +291,17 @@ function PracticePage() {
                   {globalNumber}
                 </span>
                 <div className="flex-1">
-                  <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider block mb-1">
-                    {q.type.replace('-', ' ')}
-                  </span>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider block">
+                      {q.type.replace('-', ' ')}
+                    </span>
+                    {isQuestionLocked && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--text-muted)] bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] px-2 py-0.5 rounded-md animate-fade-in">
+                        <Lock className="h-3 w-3 text-amber-500" />
+                        <span>Answer Locked</span>
+                      </span>
+                    )}
+                  </div>
                   <h2 className="text-sm sm:text-base font-semibold text-[var(--text-primary)] leading-snug">
                     {q.question}
                   </h2>
@@ -300,10 +320,12 @@ function PracticePage() {
                     if (isInstantMode && selectedAnswer) {
                       if (isSelected) {
                         buttonClass = isCorrectAnswer
-                          ? 'bg-[var(--color-success-subtle)] border-2 border-emerald-500 text-[var(--color-success)] font-bold ring-1 ring-emerald-500'
-                          : 'bg-[var(--color-danger-subtle)] border-2 border-red-500 text-[var(--color-danger)] font-bold ring-1 ring-red-500'
+                          ? 'bg-[var(--color-success-subtle)] border-2 border-emerald-500 text-[var(--color-success)] font-bold ring-1 ring-emerald-500 cursor-default'
+                          : 'bg-[var(--color-danger-subtle)] border-2 border-red-500 text-[var(--color-danger)] font-bold ring-1 ring-red-500 cursor-default'
                       } else if (isCorrectAnswer) {
-                        buttonClass = 'bg-[var(--bg-surface-elevated)] border border-emerald-500/50 text-[var(--color-success)] font-semibold'
+                        buttonClass = 'bg-[var(--bg-surface-elevated)] border border-emerald-500/50 text-[var(--color-success)] font-semibold cursor-default'
+                      } else {
+                        buttonClass = 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)] opacity-60 cursor-default'
                       }
                     } else if (isSelected) {
                       buttonClass = 'bg-[var(--bg-surface-elevated)] border-2 border-[var(--border-strong)] text-[var(--text-primary)] font-semibold shadow-sm ring-1 ring-[var(--border-strong)]'
@@ -313,8 +335,15 @@ function PracticePage() {
                       <button
                         key={oIdx}
                         type="button"
-                        onClick={() => handleSelectAnswer(q.id, opt)}
-                        className={`w-full p-3.5 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between text-left transition-all cursor-pointer ${buttonClass}`}
+                        disabled={isQuestionLocked}
+                        onClick={() => {
+                          if (!isQuestionLocked) {
+                            handleSelectAnswer(q.id, opt)
+                          }
+                        }}
+                        className={`w-full p-3.5 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-between text-left transition-all ${
+                          isQuestionLocked ? 'cursor-default' : 'cursor-pointer'
+                        } ${buttonClass}`}
                       >
                         <span className="pr-3">{opt}</span>
                         <div className="shrink-0 flex items-center gap-1.5">
@@ -360,10 +389,12 @@ function PracticePage() {
                     if (isInstantMode && selectedAnswer) {
                       if (isSelected) {
                         buttonClass = isCorrectAnswer
-                          ? 'bg-[var(--color-success-subtle)] border-2 border-emerald-500 text-[var(--color-success)] font-bold ring-1 ring-emerald-500'
-                          : 'bg-[var(--color-danger-subtle)] border-2 border-red-500 text-[var(--color-danger)] font-bold ring-1 ring-red-500'
+                          ? 'bg-[var(--color-success-subtle)] border-2 border-emerald-500 text-[var(--color-success)] font-bold ring-1 ring-emerald-500 cursor-default'
+                          : 'bg-[var(--color-danger-subtle)] border-2 border-red-500 text-[var(--color-danger)] font-bold ring-1 ring-red-500 cursor-default'
                       } else if (isCorrectAnswer) {
-                        buttonClass = 'bg-[var(--bg-surface-elevated)] border border-emerald-500/50 text-[var(--color-success)] font-semibold'
+                        buttonClass = 'bg-[var(--bg-surface-elevated)] border border-emerald-500/50 text-[var(--color-success)] font-semibold cursor-default'
+                      } else {
+                        buttonClass = 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)] opacity-60 cursor-default'
                       }
                     } else if (isSelected) {
                       buttonClass = 'bg-[var(--bg-surface-elevated)] border-2 border-[var(--border-strong)] text-[var(--text-primary)] ring-1 ring-[var(--border-strong)] font-bold'
@@ -373,8 +404,15 @@ function PracticePage() {
                       <button
                         key={val}
                         type="button"
-                        onClick={() => handleSelectAnswer(q.id, val)}
-                        className={`py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer text-center border flex items-center justify-center gap-2 ${buttonClass}`}
+                        disabled={isQuestionLocked}
+                        onClick={() => {
+                          if (!isQuestionLocked) {
+                            handleSelectAnswer(q.id, val)
+                          }
+                        }}
+                        className={`py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all text-center border flex items-center justify-center gap-2 ${
+                          isQuestionLocked ? 'cursor-default' : 'cursor-pointer'
+                        } ${buttonClass}`}
                       >
                         <span>{val}</span>
                         {isInstantMode && selectedAnswer && isSelected && (
@@ -396,9 +434,15 @@ function PracticePage() {
                   <textarea
                     rows={2}
                     value={selectedAnswer}
-                    onChange={(e) => handleSelectAnswer(q.id, e.target.value)}
+                    disabled={isQuestionLocked}
+                    readOnly={isQuestionLocked}
+                    onChange={(e) => {
+                      if (!isQuestionLocked) {
+                        handleSelectAnswer(q.id, e.target.value)
+                      }
+                    }}
                     placeholder="Type your concise conceptual answer..."
-                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] p-3 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--border-strong)] transition resize-none"
+                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] p-3 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--border-strong)] transition resize-none disabled:opacity-75 disabled:cursor-default"
                   />
                 </div>
               )}
@@ -480,11 +524,15 @@ function PracticePage() {
       {/* Bottom Actions Bar */}
       <div className="pt-4 flex items-center justify-between gap-4">
         <p className="text-xs text-[var(--text-muted)]">
-          {!allCurrentAnswered && (
+          {!allCurrentAnswered ? (
             <span className="text-[var(--color-warning)] font-medium">
-              Please answer all questions before advancing.
+              Please answer all questions in this batch before advancing.
             </span>
-          )}
+          ) : !isLastBatch ? (
+            <span className="text-[var(--text-secondary)]">
+              Submitting this batch will permanently lock these answers.
+            </span>
+          ) : null}
         </p>
 
         <button
@@ -504,7 +552,11 @@ function PracticePage() {
             </>
           ) : (
             <>
-              <span>Next Questions</span>
+              <span>
+                {batchSize === 1
+                  ? 'Submit Answer & Next Question'
+                  : 'Submit Batch & Continue'}
+              </span>
               <ArrowRight className="h-4 w-4" />
             </>
           )}

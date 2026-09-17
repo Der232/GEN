@@ -68,7 +68,7 @@ function GeneratePage() {
   const [subjectOption, setSubjectOption] = useState('Auto-Detect (AI)')
   const [customSubject, setCustomSubject] = useState('')
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
-  const [countOption, setCountOption] = useState<'5' | '10' | '15' | '20' | '25' | '30' | 'custom'>('5')
+  const [countOption, setCountOption] = useState<'5' | '10' | '15' | 'custom'>('5')
   const [customCount, setCustomCount] = useState<number>(8)
   const [questionTypes, setQuestionTypes] = useState<string[]>(['multiple-choice'])
 
@@ -318,7 +318,12 @@ function GeneratePage() {
         ? 'Auto-Detect'
         : subjectOption
 
-    const effectiveCount = countOption === 'custom' ? customCount : Number(countOption)
+    const rawCount = countOption === 'custom' ? customCount : Number(countOption)
+    if (rawCount > 30) {
+      setError('Question count cannot exceed 30 questions.')
+      return
+    }
+    const effectiveCount = Math.min(30, Math.max(1, rawCount))
 
     try {
       const res = await fetch('/api/exam/generate', {
@@ -359,7 +364,13 @@ function GeneratePage() {
         ? 'Auto-Detect'
         : subjectOption
 
-    const effectiveCount = countOption === 'custom' ? customCount : Number(countOption)
+    const rawCount = countOption === 'custom' ? customCount : Number(countOption)
+    if (rawCount > 30) {
+      setError('Question count cannot exceed 30 questions.')
+      setIsRegenerating(false)
+      return
+    }
+    const effectiveCount = Math.min(30, Math.max(1, rawCount))
 
     try {
       const res = await fetch('/api/exam/generate', {
@@ -738,14 +749,14 @@ function GeneratePage() {
                 {countOption === 'custom' ? `${customCount} Questions` : `${countOption} Questions`}
               </span>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-7 gap-2">
-              {(['5', '10', '15', '20', '25', '30'] as const).map((num) => (
+            <div className="grid grid-cols-4 gap-2">
+              {(['5', '10', '15'] as const).map((num) => (
                 <button
                   key={num}
                   type="button"
                   onClick={() => setCountOption(num)}
                   className={`
-                    py-2 rounded-lg text-xs font-medium transition-all border
+                    py-2 rounded-lg text-xs font-medium transition-all border cursor-pointer
                     ${
                       countOption === num
                         ? 'btn-primary font-bold'
@@ -760,7 +771,7 @@ function GeneratePage() {
                 type="button"
                 onClick={() => setCountOption('custom')}
                 className={`
-                  py-2 rounded-lg text-xs font-medium transition-all border
+                  py-2 rounded-lg text-xs font-medium transition-all border cursor-pointer
                   ${
                     countOption === 'custom'
                       ? 'btn-primary font-bold'
@@ -773,19 +784,38 @@ function GeneratePage() {
             </div>
 
             {countOption === 'custom' && (
-              <div className="mt-2.5 flex items-center gap-3">
-                <span className="text-xs text-[var(--text-secondary)]">Custom question count (1 – 30):</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={30}
-                  value={customCount}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value) || 1
-                    setCustomCount(Math.max(1, Math.min(30, val)))
-                  }}
-                  className="w-20 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] px-3 py-1.5 text-xs sm:text-sm text-[var(--text-primary)] text-center focus:outline-none focus:border-[var(--border-strong)]"
-                />
+              <div className="mt-2.5 space-y-1">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-[var(--text-secondary)]">Custom question count (1 – 30 max):</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={30}
+                    value={customCount}
+                    onChange={(e) => {
+                      const raw = e.target.value
+                      if (raw === '') {
+                        setCustomCount(1)
+                        return
+                      }
+                      const val = parseInt(raw, 10)
+                      if (isNaN(val)) return
+                      if (val > 30) {
+                        setCustomCount(30)
+                      } else if (val < 1) {
+                        setCustomCount(1)
+                      } else {
+                        setCustomCount(val)
+                      }
+                    }}
+                    className="w-20 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] px-3 py-1.5 text-xs sm:text-sm text-[var(--text-primary)] text-center focus:outline-none focus:border-[var(--border-strong)]"
+                  />
+                </div>
+                {customCount > 30 && (
+                  <p className="text-[11px] text-[var(--color-danger)] font-medium">
+                    Question count cannot exceed 30.
+                  </p>
+                )}
               </div>
             )}
           </div>

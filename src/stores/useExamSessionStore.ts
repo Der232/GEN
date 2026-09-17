@@ -34,18 +34,26 @@ export const useExamSessionStore = create<ExamSessionState>()(
 
       setHasHydrated: (hydrated: boolean) => set({ hasHydrated: hydrated }),
 
-      initSession: ({ attemptId, examId, batchSize, initialAnswers }) => {
+      initSession: ({ attemptId, examId, batchSize, initialAnswers = {} }) => {
         set((state) => {
           // If we are continuing the exact same attempt, preserve already selected answers
           const isSameAttempt = state.activeAttemptId === attemptId
+          const effectiveBatch = Math.max(batchSize, 1)
+          const mergedAnswers = isSameAttempt
+            ? { ...initialAnswers, ...state.userAnswers }
+            : { ...initialAnswers }
+
+          const answeredCount = Object.keys(mergedAnswers).length
+          const minBatchFromAnswers = Math.floor(answeredCount / effectiveBatch)
+          const savedBatch = isSameAttempt ? state.currentBatchIndex : 0
+          const currentBatchIndex = Math.max(savedBatch, minBatchFromAnswers)
+
           return {
             activeAttemptId: attemptId,
             examId,
-            batchSize: Math.max(batchSize, 1),
-            currentBatchIndex: isSameAttempt ? state.currentBatchIndex : 0,
-            userAnswers: isSameAttempt
-              ? { ...initialAnswers, ...state.userAnswers }
-              : { ...initialAnswers },
+            batchSize: effectiveBatch,
+            currentBatchIndex,
+            userAnswers: mergedAnswers,
           }
         })
       },

@@ -191,7 +191,8 @@ function DiscoverPage() {
           {filteredExams.map((ex) => (
             <div
               key={ex.id}
-              className="gen-card gen-card-hover p-5 flex flex-col justify-between group"
+              onClick={() => setSelectedExamForPractice(ex)}
+              className="gen-card gen-card-hover p-5 flex flex-col justify-between group cursor-pointer transition-all"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2.5">
@@ -211,13 +212,9 @@ function DiscoverPage() {
                   </span>
                 </div>
 
-                <Link
-                  to="/exam/$examId"
-                  params={{ examId: ex.id }}
-                  className="font-heading text-base font-bold text-[var(--text-primary)] mb-1.5 line-clamp-2 no-underline hover:underline cursor-pointer block"
-                >
+                <h3 className="font-heading text-base font-bold text-[var(--text-primary)] mb-1.5 line-clamp-2 group-hover:underline">
                   {ex.title}
-                </Link>
+                </h3>
 
                 <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mb-4 leading-relaxed">
                   {ex.description || 'Comprehensive test questions covering core concepts and problem solving.'}
@@ -234,7 +231,10 @@ function DiscoverPage() {
 
                 <button
                   type="button"
-                  onClick={() => setSelectedExamForPractice(ex)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSelectedExamForPractice(ex)
+                  }}
                   className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1 font-semibold cursor-pointer"
                 >
                   <Play className="h-3 w-3 fill-current" />

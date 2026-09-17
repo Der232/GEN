@@ -76,6 +76,13 @@ export const Route = createFileRoute('/api/exam/generate')({
             )
           }
 
+          if (Number(questionCount) > 30) {
+            return new Response(
+              JSON.stringify({ error: 'Question count cannot exceed 30.' }),
+              { status: 400, headers: { 'Content-Type': 'application/json' } },
+            )
+          }
+
           const count = Math.min(Math.max(Number(questionCount) || 5, 1), 30)
 
           // Sanitize permitted question types (only multiple-choice and true-false)
