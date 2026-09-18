@@ -3,6 +3,7 @@ import { db } from '#/db'
 import { documents } from '#/db/schema'
 import { auth } from '#/lib/auth'
 import { MAX_FILE_SIZE_BYTES, type SupportedFileType } from '#/lib/document-processor'
+import { checkUploadLimit } from '#/lib/rate-limiter'
 
 export const Route = createFileRoute('/api/documents/initiate')({
   server: {
@@ -14,6 +15,15 @@ export const Route = createFileRoute('/api/documents/initiate')({
             return new Response(
               JSON.stringify({ error: 'Authentication required. Please sign in or continue as guest.' }),
               { status: 401, headers: { 'Content-Type': 'application/json' } }
+            )
+          }
+
+          // ─── Rate Limiting: Max 3 concurrent active uploads & max 15 per day ─────
+          const limitCheck = await checkUploadLimit(session.user.id)
+          if (!limitCheck.allowed) {
+            return new Response(
+              JSON.stringify({ error: limitCheck.error }),
+              { status: 429, headers: { 'Content-Type': 'application/json' } }
             )
           }
 
@@ -50,7 +60,7 @@ export const Route = createFileRoute('/api/documents/initiate')({
 
           if (fileSize > MAX_FILE_SIZE_BYTES) {
             return new Response(
-              JSON.stringify({ error: 'File exceeds the maximum allowed size of 30 MB.' }),
+              JSON.stringify({ error: 'File exceeds the maximum allowed size of 50 MB.' }),
               { status: 400, headers: { 'Content-Type': 'application/json' } }
             )
           }

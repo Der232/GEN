@@ -4,7 +4,7 @@ import { db } from '#/db'
 import { documents } from '#/db/schema'
 import { eq } from 'drizzle-orm'
 
-export const MAX_FILE_SIZE_BYTES = 30 * 1024 * 1024 // 30 MB
+export const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024 // 50 MB
 
 export type SupportedFileType = 'pdf' | 'pptx' | 'docx'
 
@@ -16,7 +16,7 @@ export async function validateFileMagicBytes(
   expectedType: SupportedFileType
 ): Promise<{ valid: boolean; error?: string }> {
   if (buffer.byteLength > MAX_FILE_SIZE_BYTES) {
-    return { valid: false, error: 'File exceeds maximum size limit of 30 MB.' }
+    return { valid: false, error: 'File exceeds maximum size limit of 50 MB.' }
   }
 
   const bytes = new Uint8Array(buffer.slice(0, 8))

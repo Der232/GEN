@@ -120,6 +120,14 @@ export const attemptAnswers = sqliteTable('attempt_answers', {
   answeredAt: integer('answered_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })
 
+// ─── Rate Limits ─────────────────────────────────────────────────────────────
+export const rateLimits = sqliteTable('rate_limits', {
+  id: text('id').primaryKey(),
+  key: text('key').notNull(),
+  action: text('action').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
 export type User = typeof user.$inferSelect
 export type Session = typeof session.$inferSelect
 export type Document = typeof documents.$inferSelect
@@ -132,3 +140,5 @@ export type Attempt = typeof attempts.$inferSelect
 export type NewAttempt = typeof attempts.$inferInsert
 export type AttemptAnswer = typeof attemptAnswers.$inferSelect
 export type NewAttemptAnswer = typeof attemptAnswers.$inferInsert
+export type RateLimit = typeof rateLimits.$inferSelect
+export type NewRateLimit = typeof rateLimits.$inferInsert

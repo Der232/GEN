@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { db } from '#/db'
 import { documents } from '#/db/schema'
 import { eq } from 'drizzle-orm'
+import { auth } from '#/lib/auth'
+import { checkGenerationLimit, recordGeneration } from '#/lib/rate-limiter'
 
 const GeneratedQuestionSchema = z.object({
   order: z.number(),
@@ -32,6 +34,47 @@ export const Route = createFileRoute('/api/exam/generate')({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const session = await auth.api.getSession({ headers: request.headers })
+          if (!session?.user) {
+            return new Response(
+              JSON.stringify({ error: 'Authentication required. Please sign in or continue as guest.' }),
+              { status: 401, headers: { 'Content-Type': 'application/json' } }
+            )
+          }
+
+          // ─── Rate Limiting: 30s cooldown & daily quotas (10 guest / 25 user) ───
+          const clientIp =
+            request.headers.get('cf-connecting-ip') ||
+            request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+            null
+          const isAnonymous = Boolean(
+            (session.user as any)?.isAnonymous || !session.user.email
+          )
+
+          const limitCheck = await checkGenerationLimit({
+            userId: session.user.id,
+            isAnonymous,
+            clientIp,
+          })
+
+          if (!limitCheck.allowed) {
+            return new Response(
+              JSON.stringify({
+                error: limitCheck.error,
+                retryAfterSeconds: limitCheck.retryAfterSeconds,
+              }),
+              {
+                status: 429,
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(limitCheck.retryAfterSeconds
+                    ? { 'Retry-After': String(limitCheck.retryAfterSeconds) }
+                    : {}),
+                },
+              }
+            )
+          }
+
           const body = await request.json()
           const {
             topic,
@@ -261,6 +304,13 @@ Please generate the complete exam in the required JSON format.`
               { status: 502, headers: { 'Content-Type': 'application/json' } },
             )
           }
+
+          // Record generation event for cooldown and daily quota tracking
+          await recordGeneration({
+            userId: session.user.id,
+            isAnonymous,
+            clientIp,
+          })
 
           return new Response(JSON.stringify(validated), {
             status: 200,

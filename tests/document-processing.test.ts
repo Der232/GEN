@@ -9,11 +9,11 @@ import {
 import JSZip from 'jszip'
 
 describe('Document Processor & Validation', () => {
-  it('enforces maximum 30 MB file size limit', async () => {
+  it('enforces maximum 50 MB file size limit', async () => {
     const oversizedBuffer = new ArrayBuffer(MAX_FILE_SIZE_BYTES + 1)
     const result = await validateFileMagicBytes(oversizedBuffer, 'pdf')
     expect(result.valid).toBe(false)
-    expect(result.error).toContain('30 MB')
+    expect(result.error).toContain('50 MB')
   })
 
   it('rejects invalid PDF files with incorrect headers', async () => {

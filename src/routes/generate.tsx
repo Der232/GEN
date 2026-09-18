@@ -119,8 +119,8 @@ function GeneratePage() {
       return
     }
 
-    if (file.size > 30 * 1024 * 1024) {
-      setFileError('File exceeds maximum size limit of 30 MB.')
+    if (file.size > 50 * 1024 * 1024) {
+      setFileError('File exceeds maximum size limit of 50 MB.')
       return
     }
 
@@ -529,7 +529,7 @@ function GeneratePage() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="btn-secondary px-2.5 py-1 text-xs flex items-center gap-1.5 cursor-pointer"
-                title="Add reference document (PDF, PPTX, DOCX)"
+                title="Add reference document (PDF, PPTX, DOCX, up to 50 MB)"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Add File</span>
