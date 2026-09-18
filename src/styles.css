@@ -6,7 +6,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ─── Default & Dark Mode: Dark Charcoal & Dark Grey with Pure White Accents ─── */
+/* ─── Default & Dark Mode: Dark Charcoal & Dark Grey with Pure white Accents ─── */
 :root,
 .dark {
   --bg-main: #0c0d0e;
