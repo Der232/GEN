@@ -8,37 +8,13 @@ function TermsAndPrivacyPage() {
   return (
     <div className="min-h-full py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-10 animate-fade-in text-[var(--text-primary)]">
       {/* ─── Page Header ────────────────────────────────────────────────────────── */}
-      <header className="space-y-3 pb-6 border-b border-[var(--border-subtle)]">
+      <header className="space-y-2 pb-6 border-b border-[var(--border-subtle)]">
         <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
           Terms, Privacy &amp; User Guide
         </h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-2xl leading-relaxed">
           Comprehensive documentation for the GEN platform, including platform usage guidelines, terms of service, and our privacy policy.
         </p>
-
-        {/* Quick Nav Anchors */}
-        <nav className="flex items-center gap-4 pt-2 text-xs text-[var(--text-muted)] font-medium">
-          <a
-            href="#how-to-use"
-            className="hover:text-[var(--text-primary)] underline underline-offset-4 transition-colors"
-          >
-            How to Use
-          </a>
-          <span>&middot;</span>
-          <a
-            href="#terms-of-service"
-            className="hover:text-[var(--text-primary)] underline underline-offset-4 transition-colors"
-          >
-            Terms of Service
-          </a>
-          <span>&middot;</span>
-          <a
-            href="#privacy-policy"
-            className="hover:text-[var(--text-primary)] underline underline-offset-4 transition-colors"
-          >
-            Privacy Policy
-          </a>
-        </nav>
       </header>
 
       {/* ─── 1. HOW TO USE GEN ──────────────────────────────────────────────────── */}
