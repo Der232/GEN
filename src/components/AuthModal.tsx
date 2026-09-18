@@ -207,15 +207,10 @@ export default function AuthModal({
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Frosted Glass Backdrop */}
       <div
-        className="absolute inset-0 modal-backdrop-frosted transition-opacity duration-200"
-        style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.45)',
-          backdropFilter: 'blur(12px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-        }}
+        className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-200"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -224,12 +219,12 @@ export default function AuthModal({
       <div
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-md rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-6 sm:p-7 shadow-2xl animate-modal-in z-10 overflow-hidden"
+        className="relative w-full max-w-md rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-4 sm:p-6 md:p-7 shadow-2xl animate-modal-in z-10 overflow-y-auto max-h-[92vh] sm:max-h-none"
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-xl p-2 text-[var(--text-muted)] hover:bg-[var(--bg-surface-elevated)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+          className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-xl p-1.5 sm:p-2 text-[var(--text-muted)] hover:bg-[var(--bg-surface-elevated)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
           aria-label="Close modal"
         >
           <X className="h-4 w-4" />
@@ -237,16 +232,16 @@ export default function AuthModal({
 
         {/* ─── 1. PROMPT / CHOICE VIEW ────────────────────────────────────────── */}
         {view === 'choice' && (
-          <div className="space-y-5">
+          <div className="space-y-4 sm:space-y-5">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold badge-neutral mb-3">
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-semibold badge-neutral mb-2 sm:mb-3">
                 <Sparkles className="h-3 w-3" />
                 <span>Account Options</span>
               </div>
-              <h2 className="font-heading text-xl font-bold text-[var(--text-primary)]">
+              <h2 className="font-heading text-lg sm:text-xl font-bold text-[var(--text-primary)]">
                 Choose How to Continue
               </h2>
-              <p className="mt-1 text-xs text-[var(--text-secondary)] leading-relaxed">
+              <p className="mt-0.5 sm:mt-1 text-[11px] sm:text-xs text-[var(--text-secondary)] leading-relaxed">
                 You are currently exploring as{' '}
                 <span className="font-semibold text-[var(--text-primary)]">
                   {currentDisplayName}
@@ -255,59 +250,59 @@ export default function AuthModal({
               </p>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {/* Option A: Link Account */}
               <button
                 onClick={() => handleSelectFlow('link')}
-                className="w-full text-left p-4 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all cursor-pointer group flex items-start gap-3.5"
+                className="w-full text-left p-3 sm:p-4 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all cursor-pointer group flex items-start gap-2.5 sm:gap-3.5"
               >
-                <div className="h-9 w-9 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 text-[var(--text-primary)] group-hover:bg-[var(--border-subtle)] transition-colors">
-                  <Link2 className="h-4 w-4" />
+                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 text-[var(--text-primary)] group-hover:bg-[var(--border-subtle)] transition-colors">
+                  <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <h4 className="text-xs font-semibold text-[var(--text-primary)]">
                       Link Current Account
                     </h4>
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full badge-success">
+                    <span className="text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full badge-success">
                       Keep Data
                     </span>
                   </div>
-                  <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+                  <p className="text-[10px] sm:text-[11px] text-[var(--text-secondary)] mt-0.5 leading-relaxed">
                     Attach your email to this session. All your created exams, completed tests, and
                     scores will be permanently saved.
                   </p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-[var(--text-muted)] group-hover:text-[var(--text-primary)] group-hover:translate-x-0.5 transition-all shrink-0 mt-2" />
+                <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-muted)] group-hover:text-[var(--text-primary)] group-hover:translate-x-0.5 transition-all shrink-0 mt-1.5 sm:mt-2" />
               </button>
 
               {/* Option B: Create Fresh Account */}
               <button
                 onClick={() => handleSelectFlow('fresh')}
-                className="w-full text-left p-4 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all cursor-pointer group flex items-start gap-3.5"
+                className="w-full text-left p-3 sm:p-4 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all cursor-pointer group flex items-start gap-2.5 sm:gap-3.5"
               >
-                <div className="h-9 w-9 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] group-hover:bg-[var(--border-subtle)] transition-colors">
-                  <UserPlus className="h-4 w-4" />
+                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] group-hover:bg-[var(--border-subtle)] transition-colors">
+                  <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <h4 className="text-xs font-semibold text-[var(--text-primary)]">
                       Create Fresh Account
                     </h4>
-                    <span className="text-[9px] font-medium px-2 py-0.5 rounded-full badge-neutral">
+                    <span className="text-[9px] font-medium px-1.5 sm:px-2 py-0.5 rounded-full badge-neutral">
                       Clean Slate
                     </span>
                   </div>
-                  <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+                  <p className="text-[10px] sm:text-[11px] text-[var(--text-secondary)] mt-0.5 leading-relaxed">
                     Start clean from scratch without transferring any current anonymous exams or
                     practice history.
                   </p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-[var(--text-muted)] group-hover:text-[var(--text-primary)] group-hover:translate-x-0.5 transition-all shrink-0 mt-2" />
+                <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-muted)] group-hover:text-[var(--text-primary)] group-hover:translate-x-0.5 transition-all shrink-0 mt-1.5 sm:mt-2" />
               </button>
             </div>
 
-            <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs text-[var(--text-secondary)]">
+            <div className="pt-2 sm:pt-2.5 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] sm:text-xs text-[var(--text-secondary)]">
               <span>Already registered?</span>
               <button
                 onClick={() => {
@@ -325,32 +320,32 @@ export default function AuthModal({
 
         {/* ─── 2. SIGN UP VIEW ────────────────────────────────────────────────── */}
         {view === 'signup' && (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold badge-neutral">
+              <div className="flex items-center gap-2 mb-1 sm:mb-1.5">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-semibold badge-neutral">
                   {isLinking ? <Link2 className="h-2.5 w-2.5" /> : <UserPlus className="h-2.5 w-2.5" />}
-                  {isLinking ? `Linking to: ${currentDisplayName}` : 'Fresh Account'}
+                  {isLinking ? `Linking: ${currentDisplayName}` : 'Fresh Account'}
                 </span>
               </div>
-              <h2 className="font-heading text-xl font-bold text-[var(--text-primary)]">
+              <h2 className="font-heading text-lg sm:text-xl font-bold text-[var(--text-primary)]">
                 {isLinking ? 'Link & Create Account' : 'Create Fresh Account'}
               </h2>
-              <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+              <p className="mt-0.5 text-[11px] sm:text-xs text-[var(--text-secondary)]">
                 {isLinking
-                  ? 'All your current exams and scores will be transferred to your account.'
+                  ? 'All your current exams and scores will be saved to your account.'
                   : 'Starting with a clean profile. No previous exam history will be attached.'}
               </p>
             </div>
 
-            <form onSubmit={handleSignUpSubmit} className="space-y-3.5">
+            <form onSubmit={handleSignUpSubmit} className="space-y-2.5 sm:space-y-3">
               {/* Full Name */}
               <div>
-                <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
+                <label className="mb-0.5 sm:mb-1 block text-[11px] sm:text-xs font-medium text-[var(--text-secondary)]">
                   Full Name <span className="text-[var(--color-danger)]">*</span>
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                  <User className="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-muted)]" />
                   <input
                     type="text"
                     value={name}
@@ -359,7 +354,7 @@ export default function AuthModal({
                       if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: '' }))
                     }}
                     placeholder="e.g. Alex Morgan"
-                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-10 pr-3.5 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
+                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-1.5 sm:py-2 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
                       fieldErrors.name
                         ? 'border-[var(--color-danger)] focus:border-[var(--color-danger)] focus:ring-[var(--color-danger)]'
                         : 'border-[var(--border-subtle)] focus:border-[var(--border-strong)] focus:ring-[var(--border-strong)]'
@@ -367,7 +362,7 @@ export default function AuthModal({
                   />
                 </div>
                 {fieldErrors.name && (
-                  <p className="mt-1 text-[11px] text-[var(--color-danger)] font-medium">
+                  <p className="mt-0.5 text-[10px] sm:text-[11px] text-[var(--color-danger)] font-medium">
                     {fieldErrors.name}
                   </p>
                 )}
@@ -375,11 +370,11 @@ export default function AuthModal({
 
               {/* Email Address */}
               <div>
-                <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
+                <label className="mb-0.5 sm:mb-1 block text-[11px] sm:text-xs font-medium text-[var(--text-secondary)]">
                   Email Address <span className="text-[var(--color-danger)]">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                  <Mail className="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-muted)]" />
                   <input
                     type="email"
                     value={email}
@@ -388,7 +383,7 @@ export default function AuthModal({
                       if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: '' }))
                     }}
                     placeholder="alex@university.edu"
-                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-10 pr-3.5 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
+                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-1.5 sm:py-2 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
                       fieldErrors.email
                         ? 'border-[var(--color-danger)] focus:border-[var(--color-danger)] focus:ring-[var(--color-danger)]'
                         : 'border-[var(--border-subtle)] focus:border-[var(--border-strong)] focus:ring-[var(--border-strong)]'
@@ -396,7 +391,7 @@ export default function AuthModal({
                   />
                 </div>
                 {fieldErrors.email && (
-                  <p className="mt-1 text-[11px] text-[var(--color-danger)] font-medium">
+                  <p className="mt-0.5 text-[10px] sm:text-[11px] text-[var(--color-danger)] font-medium">
                     {fieldErrors.email}
                   </p>
                 )}
@@ -404,11 +399,11 @@ export default function AuthModal({
 
               {/* Password */}
               <div>
-                <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
+                <label className="mb-0.5 sm:mb-1 block text-[11px] sm:text-xs font-medium text-[var(--text-secondary)]">
                   Password <span className="text-[var(--color-danger)]">*</span>
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                  <Lock className="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-muted)]" />
                   <input
                     type={showPass ? 'text' : 'password'}
                     value={password}
@@ -418,7 +413,7 @@ export default function AuthModal({
                         setFieldErrors((prev) => ({ ...prev, password: '' }))
                     }}
                     placeholder="At least 8 characters"
-                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-10 pr-10 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
+                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-9 sm:pl-10 pr-9 sm:pr-10 py-1.5 sm:py-2 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
                       fieldErrors.password
                         ? 'border-[var(--color-danger)] focus:border-[var(--color-danger)] focus:ring-[var(--color-danger)]'
                         : 'border-[var(--border-subtle)] focus:border-[var(--border-strong)] focus:ring-[var(--border-strong)]'
@@ -427,13 +422,13 @@ export default function AuthModal({
                   <button
                     type="button"
                     onClick={() => setShowPass((s) => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                    className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer p-0.5"
                   >
-                    {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPass ? <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                   </button>
                 </div>
                 {fieldErrors.password && (
-                  <p className="mt-1 text-[11px] text-[var(--color-danger)] font-medium">
+                  <p className="mt-0.5 text-[10px] sm:text-[11px] text-[var(--color-danger)] font-medium">
                     {fieldErrors.password}
                   </p>
                 )}
@@ -441,11 +436,11 @@ export default function AuthModal({
 
               {/* Confirm Password */}
               <div>
-                <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
+                <label className="mb-0.5 sm:mb-1 block text-[11px] sm:text-xs font-medium text-[var(--text-secondary)]">
                   Repeat Password <span className="text-[var(--color-danger)]">*</span>
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                  <Lock className="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-muted)]" />
                   <input
                     type={showConfirmPass ? 'text' : 'password'}
                     value={confirmPassword}
@@ -455,7 +450,7 @@ export default function AuthModal({
                         setFieldErrors((prev) => ({ ...prev, confirmPassword: '' }))
                     }}
                     placeholder="Re-enter your password"
-                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-10 pr-10 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
+                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-9 sm:pl-10 pr-9 sm:pr-10 py-1.5 sm:py-2 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
                       fieldErrors.confirmPassword
                         ? 'border-[var(--color-danger)] focus:border-[var(--color-danger)] focus:ring-[var(--color-danger)]'
                         : 'border-[var(--border-subtle)] focus:border-[var(--border-strong)] focus:ring-[var(--border-strong)]'
@@ -464,13 +459,13 @@ export default function AuthModal({
                   <button
                     type="button"
                     onClick={() => setShowConfirmPass((s) => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                    className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer p-0.5"
                   >
-                    {showConfirmPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPass ? <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                   </button>
                 </div>
                 {fieldErrors.confirmPassword && (
-                  <p className="mt-1 text-[11px] text-[var(--color-danger)] font-medium">
+                  <p className="mt-0.5 text-[10px] sm:text-[11px] text-[var(--color-danger)] font-medium">
                     {fieldErrors.confirmPassword}
                   </p>
                 )}
@@ -478,8 +473,8 @@ export default function AuthModal({
 
               {/* General Error Banner */}
               {generalError && (
-                <div className="flex items-center gap-2 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.3)] px-3.5 py-2 text-xs text-[var(--color-danger)]">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
+                <div className="flex items-center gap-2 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.3)] px-3 py-1.5 text-xs text-[var(--color-danger)]">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                   <span>{generalError}</span>
                 </div>
               )}
@@ -488,15 +483,15 @@ export default function AuthModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full btn-primary flex items-center justify-center gap-2 mt-3 cursor-pointer disabled:opacity-50 shadow-sm"
+                className="w-full btn-primary py-2 sm:py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2 mt-2 sm:mt-3 cursor-pointer disabled:opacity-50 shadow-sm"
               >
-                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 <span>{isLinking ? 'Link & Complete Registration' : 'Create Account'}</span>
               </button>
             </form>
 
             {/* Switch Views */}
-            <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs text-[var(--text-secondary)]">
+            <div className="pt-2 sm:pt-2.5 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] sm:text-xs text-[var(--text-secondary)]">
               {isAnon && (
                 <button
                   onClick={() => {
@@ -527,28 +522,28 @@ export default function AuthModal({
 
         {/* ─── 3. SIGN IN VIEW ────────────────────────────────────────────────── */}
         {view === 'signin' && (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold badge-neutral mb-2">
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-semibold badge-neutral mb-1.5 sm:mb-2">
                 <Lock className="h-3 w-3" />
                 <span>Welcome Back</span>
               </div>
-              <h2 className="font-heading text-xl font-bold text-[var(--text-primary)]">
+              <h2 className="font-heading text-lg sm:text-xl font-bold text-[var(--text-primary)]">
                 Sign in to your account
               </h2>
-              <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+              <p className="mt-0.5 text-[11px] sm:text-xs text-[var(--text-secondary)]">
                 Access your generated exams, completed attempts, and metrics.
               </p>
             </div>
 
-            <form onSubmit={handleSignInSubmit} className="space-y-3.5">
+            <form onSubmit={handleSignInSubmit} className="space-y-2.5 sm:space-y-3">
               {/* Email Address */}
               <div>
-                <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
+                <label className="mb-0.5 sm:mb-1 block text-[11px] sm:text-xs font-medium text-[var(--text-secondary)]">
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                  <Mail className="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-muted)]" />
                   <input
                     type="email"
                     value={email}
@@ -557,7 +552,7 @@ export default function AuthModal({
                       if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: '' }))
                     }}
                     placeholder="alex@university.edu"
-                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-10 pr-3.5 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
+                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-1.5 sm:py-2 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
                       fieldErrors.email
                         ? 'border-[var(--color-danger)] focus:border-[var(--color-danger)] focus:ring-[var(--color-danger)]'
                         : 'border-[var(--border-subtle)] focus:border-[var(--border-strong)] focus:ring-[var(--border-strong)]'
@@ -565,7 +560,7 @@ export default function AuthModal({
                   />
                 </div>
                 {fieldErrors.email && (
-                  <p className="mt-1 text-[11px] text-[var(--color-danger)] font-medium">
+                  <p className="mt-0.5 text-[10px] sm:text-[11px] text-[var(--color-danger)] font-medium">
                     {fieldErrors.email}
                   </p>
                 )}
@@ -573,11 +568,11 @@ export default function AuthModal({
 
               {/* Password */}
               <div>
-                <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
+                <label className="mb-0.5 sm:mb-1 block text-[11px] sm:text-xs font-medium text-[var(--text-secondary)]">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                  <Lock className="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-muted)]" />
                   <input
                     type={showPass ? 'text' : 'password'}
                     value={password}
@@ -587,7 +582,7 @@ export default function AuthModal({
                         setFieldErrors((prev) => ({ ...prev, password: '' }))
                     }}
                     placeholder="Enter your password"
-                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-10 pr-10 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
+                    className={`w-full rounded-xl border bg-[var(--bg-surface-elevated)] pl-9 sm:pl-10 pr-9 sm:pr-10 py-1.5 sm:py-2 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 transition ${
                       fieldErrors.password
                         ? 'border-[var(--color-danger)] focus:border-[var(--color-danger)] focus:ring-[var(--color-danger)]'
                         : 'border-[var(--border-subtle)] focus:border-[var(--border-strong)] focus:ring-[var(--border-strong)]'
@@ -596,13 +591,13 @@ export default function AuthModal({
                   <button
                     type="button"
                     onClick={() => setShowPass((s) => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                    className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer p-0.5"
                   >
-                    {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPass ? <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                   </button>
                 </div>
                 {fieldErrors.password && (
-                  <p className="mt-1 text-[11px] text-[var(--color-danger)] font-medium">
+                  <p className="mt-0.5 text-[10px] sm:text-[11px] text-[var(--color-danger)] font-medium">
                     {fieldErrors.password}
                   </p>
                 )}
@@ -610,8 +605,8 @@ export default function AuthModal({
 
               {/* General Error Banner */}
               {generalError && (
-                <div className="flex items-center gap-2 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.3)] px-3.5 py-2 text-xs text-[var(--color-danger)]">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
+                <div className="flex items-center gap-2 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.3)] px-3 py-1.5 text-xs text-[var(--color-danger)]">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                   <span>{generalError}</span>
                 </div>
               )}
@@ -620,15 +615,15 @@ export default function AuthModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full btn-primary flex items-center justify-center gap-2 mt-3 cursor-pointer disabled:opacity-50 shadow-sm"
+                className="w-full btn-primary py-2 sm:py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2 mt-2 sm:mt-3 cursor-pointer disabled:opacity-50 shadow-sm"
               >
-                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 <span>Sign In</span>
               </button>
             </form>
 
             {/* Switch Views */}
-            <div className="pt-3 border-t border-[var(--border-subtle)] text-center text-xs text-[var(--text-secondary)]">
+            <div className="pt-2 sm:pt-2.5 border-t border-[var(--border-subtle)] text-center text-[11px] sm:text-xs text-[var(--text-secondary)]">
               <span>Don't have an account yet? </span>
               <button
                 onClick={() => {
