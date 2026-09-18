@@ -3,6 +3,7 @@ import {
   Scripts,
   createRootRouteWithContext,
   Outlet,
+  Link,
 } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
@@ -53,6 +54,15 @@ function AppShell() {
         <main className="flex-1 overflow-y-auto min-w-0">
           <Outlet />
         </main>
+        <footer className="h-9 border-t border-[var(--border-subtle)] bg-[var(--bg-main)]/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between shrink-0 text-[11px] sm:text-xs text-[var(--text-muted)] select-none">
+          <span>GEN &copy; 2026. All rights reserved.</span>
+          <Link
+            to="/terms-and-privacy"
+            className="hover:text-[var(--text-primary)] transition-colors underline-offset-4 hover:underline"
+          >
+            Terms &amp; Privacy
+          </Link>
+        </footer>
       </div>
     </div>
   )

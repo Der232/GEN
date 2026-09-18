@@ -16,6 +16,7 @@ import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as GenerateRouteImport } from './routes/generate'
 import { Route as MyExamsRouteImport } from './routes/my-exams'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as TermsAndPrivacyRouteImport } from './routes/terms-and-privacy'
 import { Route as ExamExamIdRouteImport } from './routes/exam.$examId'
 import { Route as PracticeAttemptIdRouteImport } from './routes/practice.$attemptId'
 import { Route as ResultsAttemptIdRouteImport } from './routes/results.$attemptId'
@@ -65,6 +66,11 @@ const MyExamsRoute = MyExamsRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsAndPrivacyRoute = TermsAndPrivacyRouteImport.update({
+  id: '/terms-and-privacy',
+  path: '/terms-and-privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExamExamIdRoute = ExamExamIdRouteImport.update({
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/generate': typeof GenerateRoute
   '/my-exams': typeof MyExamsRoute
   '/settings': typeof SettingsRoute
+  '/terms-and-privacy': typeof TermsAndPrivacyRoute
   '/exam/$examId': typeof ExamExamIdRoute
   '/practice/$attemptId': typeof PracticeAttemptIdRoute
   '/results/$attemptId': typeof ResultsAttemptIdRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/generate': typeof GenerateRoute
   '/my-exams': typeof MyExamsRoute
   '/settings': typeof SettingsRoute
+  '/terms-and-privacy': typeof TermsAndPrivacyRoute
   '/exam/$examId': typeof ExamExamIdRoute
   '/practice/$attemptId': typeof PracticeAttemptIdRoute
   '/results/$attemptId': typeof ResultsAttemptIdRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/generate': typeof GenerateRoute
   '/my-exams': typeof MyExamsRoute
   '/settings': typeof SettingsRoute
+  '/terms-and-privacy': typeof TermsAndPrivacyRoute
   '/exam/$examId': typeof ExamExamIdRoute
   '/practice/$attemptId': typeof PracticeAttemptIdRoute
   '/results/$attemptId': typeof ResultsAttemptIdRoute
@@ -226,6 +235,7 @@ export interface FileRouteTypes {
     | '/generate'
     | '/my-exams'
     | '/settings'
+    | '/terms-and-privacy'
     | '/exam/$examId'
     | '/practice/$attemptId'
     | '/results/$attemptId'
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/generate'
     | '/my-exams'
     | '/settings'
+    | '/terms-and-privacy'
     | '/exam/$examId'
     | '/practice/$attemptId'
     | '/results/$attemptId'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/generate'
     | '/my-exams'
     | '/settings'
+    | '/terms-and-privacy'
     | '/exam/$examId'
     | '/practice/$attemptId'
     | '/results/$attemptId'
@@ -299,6 +311,7 @@ export interface RootRouteChildren {
   GenerateRoute: typeof GenerateRoute
   MyExamsRoute: typeof MyExamsRoute
   SettingsRoute: typeof SettingsRoute
+  TermsAndPrivacyRoute: typeof TermsAndPrivacyRoute
   ExamExamIdRoute: typeof ExamExamIdRoute
   PracticeAttemptIdRoute: typeof PracticeAttemptIdRoute
   ResultsAttemptIdRoute: typeof ResultsAttemptIdRoute
@@ -365,6 +378,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms-and-privacy': {
+      id: '/terms-and-privacy'
+      path: '/terms-and-privacy'
+      fullPath: '/terms-and-privacy'
+      preLoaderRoute: typeof TermsAndPrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/exam/$examId': {
@@ -483,6 +503,7 @@ const rootRouteChildren: RootRouteChildren = {
   GenerateRoute: GenerateRoute,
   MyExamsRoute: MyExamsRoute,
   SettingsRoute: SettingsRoute,
+  TermsAndPrivacyRoute: TermsAndPrivacyRoute,
   ExamExamIdRoute: ExamExamIdRoute,
   PracticeAttemptIdRoute: PracticeAttemptIdRoute,
   ResultsAttemptIdRoute: ResultsAttemptIdRoute,
