@@ -1,15 +1,12 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import {
-  BookOpen,
   Play,
   User,
-  CheckCircle2,
   Calendar,
   Layers,
   ArrowLeft,
   Loader2,
-  AlertCircle,
   Award,
 } from 'lucide-react'
 import { useExamPerformanceStore } from '#/stores/useExamPerformanceStore'

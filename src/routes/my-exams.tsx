@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import { BookOpen, Play, Trash2, Loader2, Calendar } from 'lucide-react'
+import { BookOpen, Play, Trash2, Loader2 } from 'lucide-react'
 import { useUserStore } from '#/stores/useUserStore'
 import PracticeSetupModal from '#/components/PracticeSetupModal'
 
@@ -72,7 +72,6 @@ function MyExamsPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to start practice session.')
 
-      const examToClear = selectedExamForPractice
       setSelectedExamForPractice(null)
       navigate({
         to: '/practice/$attemptId',

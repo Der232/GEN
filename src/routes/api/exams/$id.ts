@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { db } from '#/db'
-import { exams, questions } from '#/db/schema'
+import { exams, questions, type Question } from '#/db/schema'
 import { eq, asc } from 'drizzle-orm'
 
 export const Route = createFileRoute('/api/exams/$id')({
@@ -26,7 +26,7 @@ export const Route = createFileRoute('/api/exams/$id')({
             orderBy: [asc(questions.order)],
           })
 
-          const formattedQuestions = qList.map((q) => ({
+          const formattedQuestions = qList.map((q: Question) => ({
             ...q,
             options: q.options ? JSON.parse(q.options) : null,
           }))

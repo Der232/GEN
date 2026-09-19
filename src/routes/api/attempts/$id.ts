@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { db } from '#/db'
-import { attempts, exams, questions, attemptAnswers } from '#/db/schema'
+import { attempts, exams, questions, attemptAnswers, type Question, type AttemptAnswer } from '#/db/schema'
 import { eq, asc, and } from 'drizzle-orm'
 
 export const Route = createFileRoute('/api/attempts/$id')({
@@ -34,7 +34,7 @@ export const Route = createFileRoute('/api/attempts/$id')({
             where: eq(attemptAnswers.attemptId, id),
           })
 
-          const formattedQuestions = qList.map((q) => ({
+          const formattedQuestions = qList.map((q: Question) => ({
             ...q,
             options: q.options ? JSON.parse(q.options) : null,
           }))
@@ -142,7 +142,7 @@ export const Route = createFileRoute('/api/attempts/$id')({
             })
 
             const total = qList.length
-            const correct = allAnswers.filter((a) => a.isCorrect).length
+            const correct = allAnswers.filter((a: AttemptAnswer) => a.isCorrect).length
             const score = total > 0 ? Math.round((correct / total) * 100) : 0
 
             await db

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { authClient, useSession } from '#/lib/auth-client'
+import { useSession } from '#/lib/auth-client'
 import { ArrowRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -17,11 +17,9 @@ interface InProgressAttempt {
 function HomePage() {
   const { data: session, isPending } = useSession()
   const [inProgress, setInProgress] = useState<InProgressAttempt[]>([])
-  const [loadingAttempts, setLoadingAttempts] = useState(true)
 
   const user = session?.user as any
   const displayName = user?.displayName || user?.name || null
-  const isAnon = user?.isAnonymous ?? true
 
   useEffect(() => {
     fetch('/api/attempts?inProgress=true')
@@ -30,7 +28,6 @@ function HomePage() {
         setInProgress(data.attempts || [])
       })
       .catch(() => setInProgress([]))
-      .finally(() => setLoadingAttempts(false))
   }, [])
 
   return (
@@ -94,6 +91,7 @@ function HomePage() {
                 key={item.id}
                 to="/practice/$attemptId"
                 params={{ attemptId: item.id }}
+                search={{ batch: '1', mode: 'exam' }}
                 className="gen-card gen-card-hover flex items-center justify-between p-3 sm:p-4 no-underline group"
               >
                 <div className="min-w-0 flex-1 pr-3 sm:pr-4">
