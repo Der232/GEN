@@ -30,7 +30,7 @@ async function runTest() {
       <a:p><a:t>UDP is connectionless and does not guarantee packet delivery.</a:t></a:p>
     </p:sld>`
   )
-  const pptxBuffer = await pptxZip.generateAsync({ type: 'nodebuffer' })
+  const pptxBuffer = await pptxZip.generateAsync({ type: 'uint8array' })
 
   const pptxInit = await fetch(`${BASE_URL}/api/documents/initiate`, {
     method: 'POST',
@@ -90,7 +90,7 @@ startxref
 425
 %%EOF`
 
-  const pdfBuffer = Buffer.from(pdfContent)
+  const pdfBuffer = new TextEncoder().encode(pdfContent)
 
   const pdfInit = await fetch(`${BASE_URL}/api/documents/initiate`, {
     method: 'POST',

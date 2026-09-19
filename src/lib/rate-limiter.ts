@@ -1,6 +1,6 @@
 import { db } from '#/db'
 import { documents, rateLimits } from '#/db/schema'
-import { and, eq, gte, lt, inArray, sql, desc, or } from 'drizzle-orm'
+import { and, eq, gte, lt, inArray, sql, desc } from 'drizzle-orm'
 
 // ─── LIMIT CONSTANTS ─────────────────────────────────────────────────────────
 export const LIMITS = {
