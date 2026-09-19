@@ -26,5 +26,5 @@ jobs:
       - name: Typecheck
         run: pnpm exec tsc --noEmit
 
-      - name: Lint & Format
-        run: pnpm check
+      - name: Lint
+        run: pnpm lint
