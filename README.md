@@ -2,8 +2,7 @@ Welcome to your new TanStack Start app!
 
 # Getting Started
 
-To run this application: 
-first
+To run this application first:
 
 ```bash
 pnpm install
