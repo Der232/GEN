@@ -10,8 +10,6 @@ import {
   Link2,
   UserPlus,
   ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
   Sparkles,
   Lock,
   Mail,
