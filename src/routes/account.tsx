@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import { authClient, useSession, signOutAndResetToAnonymous } from '#/lib/auth-client'
+import { useSession, signOutAndResetToAnonymous } from '#/lib/auth-client'
 import {
   ShieldCheck,
   Award,
@@ -13,19 +13,12 @@ import {
   Compass,
   Target,
   Link2,
-  UserPlus,
 } from 'lucide-react'
 import AuthModal, { type AuthModalView } from '#/components/AuthModal'
 import { useExamPerformanceStore } from '#/stores/useExamPerformanceStore'
 import { useUserStore } from '#/stores/useUserStore'
 
 export const Route = createFileRoute('/account')({ component: AccountPage })
-
-interface UserStats {
-  examsCreated: number
-  examsTaken: number
-  averageScore: number
-}
 
 function AccountPage() {
   const { data: session } = useSession()

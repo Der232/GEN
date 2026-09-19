@@ -3,7 +3,6 @@ import {
   validateFileMagicBytes,
   extractDocxText,
   extractPptxText,
-  extractPdfText,
   MAX_FILE_SIZE_BYTES,
 } from '#/lib/document-processor'
 import JSZip from 'jszip'

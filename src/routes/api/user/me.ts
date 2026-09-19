@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { db } from '#/db'
-import { exams, attempts } from '#/db/schema'
+import { exams, attempts, type Attempt } from '#/db/schema'
 import { auth } from '#/lib/auth'
 import { eq, and } from 'drizzle-orm'
 
@@ -29,7 +29,7 @@ export const Route = createFileRoute('/api/user/me')({
             where: and(eq(attempts.userId, userId), eq(attempts.status, 'completed')),
           })
 
-          const totalScore = completedAttempts.reduce((acc, curr) => acc + (curr.score || 0), 0)
+          const totalScore = completedAttempts.reduce((acc: number, curr: Attempt) => acc + (curr.score || 0), 0)
           const avgScore =
             completedAttempts.length > 0 ? Math.round(totalScore / completedAttempts.length) : 0
 

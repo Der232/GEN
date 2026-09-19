@@ -1,5 +1,5 @@
 import { Link, useRouterState } from '@tanstack/react-router'
-import { authClient, useSession } from '#/lib/auth-client'
+import { useSession } from '#/lib/auth-client'
 import { useMobileNavStore } from '#/stores/useMobileNavStore'
 import {
   Sparkles,
@@ -12,7 +12,6 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
-import AuthModal from './AuthModal'
 
 const NAV_ITEMS = [
   { to: '/generate', icon: Sparkles, label: 'Generate' },
@@ -29,7 +28,6 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const isMobileOpen = useMobileNavStore((s) => s.isOpen)
   const closeMobile = useMobileNavStore((s) => s.close)
-  const [authOpen, setAuthOpen] = useState(false)
   const { data: session } = useSession()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
@@ -176,9 +174,6 @@ export default function Sidebar() {
           )}
         </div>
       </aside>
-
-      {/* Auth Modal */}
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </>
   )
 }

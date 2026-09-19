@@ -106,7 +106,6 @@ export const useExamPerformanceStore = create<ExamPerformanceState>()(
         examId,
         score,
         totalQuestions,
-        correctCount,
         answers,
       }) => {
         set((state) => {

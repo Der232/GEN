@@ -7,10 +7,6 @@ import {
   RotateCcw,
   Sparkles,
   Loader2,
-  Send,
-  HelpCircle,
-  ArrowRight,
-  BookOpen,
 } from 'lucide-react'
 import { useExamPerformanceStore } from '#/stores/useExamPerformanceStore'
 
@@ -69,7 +65,6 @@ function ResultsPage() {
   // AI Explanation state per question: questionId -> string
   const [aiExplanations, setAiExplanations] = useState<Record<string, string>>({})
   const [explainingLoading, setExplainingLoading] = useState<Record<string, boolean>>({})
-  const [followUps, setFollowUps] = useState<Record<string, string>>({})
 
   // Interactive inline retry state per question
   const [retryStates, setRetryStates] = useState<Record<string, QuestionRetryState>>({})
@@ -160,11 +155,6 @@ function ResultsPage() {
     return !a || !a.isCorrect
   })
 
-  const correctQuestions = questions.filter((q) => {
-    const a = answersMap[q.id]
-    return a && a.isCorrect
-  })
-
   const displayedQuestions = questions.filter((q) => {
     const a = answersMap[q.id]
     const isCorrect = a?.isCorrect ?? false
@@ -214,6 +204,7 @@ function ResultsPage() {
         navigate({
           to: '/practice/$attemptId',
           params: { attemptId: data.attemptId },
+          search: { batch: '1', mode: 'exam' },
         })
       }
     } catch (e) {

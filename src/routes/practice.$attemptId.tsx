@@ -4,7 +4,6 @@ import {
   CheckCircle,
   ArrowRight,
   Loader2,
-  HelpCircle,
   AlertTriangle,
   Sparkles,
   CheckCircle2,
