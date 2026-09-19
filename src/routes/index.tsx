@@ -41,7 +41,7 @@ function HomePage() {
             {displayName ? (
               <>
                 Welcome back,{' '}
-                <span className="underline decoration-[var(--border-strong)] decoration-2">{displayName}</span>
+                <span>{displayName}</span>
               </>
             ) : (
               <>
