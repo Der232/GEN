@@ -1,6 +1,6 @@
 import { db } from '#/db'
 import { documents, rateLimits } from '#/db/schema'
-import { and, eq, gte, inArray, sql, desc, or } from 'drizzle-orm'
+import { and, eq, gte, lt, inArray, sql, desc } from 'drizzle-orm'
 
 // ─── LIMIT CONSTANTS ─────────────────────────────────────────────────────────
 export const LIMITS = {
@@ -229,7 +229,7 @@ export async function recordGeneration({
     // Fire-and-forget: clean up records older than 48 hours to keep table small
     const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
     db.delete(rateLimits)
-      .where(gte(twoDaysAgo, rateLimits.createdAt))
+      .where(lt(rateLimits.createdAt, twoDaysAgo))
       .catch(() => {})
   } catch (err: any) {
     console.warn('[RateLimiter] Failed to record generation:', err)

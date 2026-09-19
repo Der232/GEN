@@ -89,7 +89,7 @@ function SettingsPage() {
           <div>
             <h3 className="text-sm font-semibold text-[var(--text-primary)]">Theme Mode</h3>
             <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-              Choose between Dark Charcoal & Dark Grey or Pure White & White Grey.
+              Choose between Dark and Light mode.
             </p>
           </div>
 
@@ -103,7 +103,7 @@ function SettingsPage() {
               }`}
             >
               <Moon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Dark Charcoal</span>
+              <span>Dark</span>
             </button>
             <button
               onClick={() => handleThemeChange('light')}
@@ -114,7 +114,7 @@ function SettingsPage() {
               }`}
             >
               <Sun className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Pure White</span>
+              <span>Light</span>
             </button>
           </div>
         </div>

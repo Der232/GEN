@@ -2,10 +2,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useRef } from 'react'
 import {
   Loader2,
-  CheckCircle,
   HelpCircle,
   Play,
-  RotateCcw,
   Bookmark,
   Check,
   Plus,
@@ -15,7 +13,6 @@ import {
   X,
   RefreshCw,
   EyeOff,
-  Sliders,
   Edit3,
 } from 'lucide-react'
 import { useUserStore } from '#/stores/useUserStore'
@@ -78,7 +75,6 @@ function GeneratePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploadedDocId, setUploadedDocId] = useState<string | null>(null)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'completed' | 'error'>('idle')
-  const [docProcessingStatus, setDocProcessingStatus] = useState<'idle' | 'processing' | 'ready' | 'failed'>('idle')
   const [uploadProgress, setUploadProgress] = useState(0) // 0 to 100
   const [uploadedBytes, setUploadedBytes] = useState(0)
   const [totalBytes, setTotalBytes] = useState(0)
@@ -130,7 +126,6 @@ function GeneratePage() {
     setUploadedBytes(0)
     setTotalBytes(file.size)
     setUploadStatus('uploading')
-    setDocProcessingStatus('idle')
     setIsSlow(false)
     setUploadSpeed('')
     setRemainingTime(null)
@@ -195,7 +190,6 @@ function GeneratePage() {
             setUploadProgress(100)
             setUploadedBytes(file.size)
             setUploadStatus('completed')
-            setDocProcessingStatus('processing')
             pollDocumentStatus(documentId)
           } else {
             let msg = 'Upload failed.'
@@ -232,10 +226,8 @@ function GeneratePage() {
         if (res.ok) {
           const data = await res.json()
           if (data.status === 'ready') {
-            setDocProcessingStatus('ready')
             clearInterval(interval)
           } else if (data.status === 'failed') {
-            setDocProcessingStatus('failed')
             setFileError(data.errorMessage || 'Document processing failed.')
             clearInterval(interval)
           }
@@ -255,7 +247,6 @@ function GeneratePage() {
     setSelectedFile(null)
     setUploadedDocId(null)
     setUploadStatus('idle')
-    setDocProcessingStatus('idle')
     setUploadProgress(0)
     setUploadedBytes(0)
     setTotalBytes(0)

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { db } from '#/db'
-import { attempts, exams } from '#/db/schema'
+import { attempts, exams, type Attempt } from '#/db/schema'
 import { auth } from '#/lib/auth'
 import { desc, eq, and } from 'drizzle-orm'
 
@@ -32,7 +32,7 @@ export const Route = createFileRoute('/api/attempts/')({
 
           // Enrich with exam title & subject
           const enriched = await Promise.all(
-            list.map(async (att) => {
+            list.map(async (att: Attempt) => {
               const exam = await db.query.exams.findFirst({
                 where: eq(exams.id, att.examId),
               })

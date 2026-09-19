@@ -15,6 +15,13 @@
       "when": 1789654091399,
       "tag": "0001_short_pride",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789824832993,
+      "tag": "0002_striped_dragon_man",
+      "breakpoints": true
     }
   ]
 }
