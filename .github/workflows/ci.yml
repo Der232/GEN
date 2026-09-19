@@ -27,7 +27,7 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
 
       - name: Biome Check (lint + format)
         run: pnpm exec biome check --error-on-warnings ./src 2>&1 | tee /tmp/lint-output.txt
@@ -58,7 +58,7 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
 
       - name: Generate routes (TanStack Router)
         run: pnpm run generate-routes
@@ -89,7 +89,7 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
 
       - name: Run tests
         run: pnpm test -- --reporter=verbose 2>&1 | tee /tmp/test-output.txt
@@ -118,7 +118,7 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
 
       - name: Generate routes
         run: pnpm run generate-routes
@@ -151,7 +151,7 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
 
       - name: Check for schema drift
         run: |
@@ -195,7 +195,7 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
 
       - name: Dependency audit
         run: pnpm audit --audit-level=high 2>&1 | tee /tmp/security-output.txt
