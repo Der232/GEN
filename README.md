@@ -2,7 +2,7 @@
 
 Generate custom exams on any topic using AI, practice with instant grading, and explore exams created by others. Built for learners, educators, and autodidacts.
 
-## Features
+To run this application first:
 
 - **Custom Exam Generation** — Generate rigorous, multi-format exams (Multiple Choice, True/False) on any subject via Groq AI
 - **Document Upload** — Use PDF, PPTX, or DOCX files as source material for exam generation
