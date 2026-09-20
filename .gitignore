@@ -16,3 +16,8 @@ todos.json
 *.sqlite3
 *.sqlite-journal
 dev.db
+
+# Brag skill & skills tooling
+.agents/
+skills-lock.json
+brag-output*/
