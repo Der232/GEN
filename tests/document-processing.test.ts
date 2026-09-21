@@ -3,6 +3,7 @@ import {
   validateFileMagicBytes,
   extractDocxText,
   extractPptxText,
+  unescapeXml,
   MAX_FILE_SIZE_BYTES,
 } from '#/lib/document-processor'
 import JSZip from 'jszip'
@@ -84,5 +85,77 @@ describe('Document Processor & Validation', () => {
     expect(extracted).toContain('Binary Trees and Heaps')
     expect(extracted).toContain('[Slide 2]')
     expect(extracted).toContain('AVL Tree Rotations')
+  })
+
+  it('correctly unescapes XML entities and decimal/hex character codes', () => {
+    const raw = 'C &amp; C++ &lt;Templates&gt; &quot;Guide&quot; &apos;Tips&#39; &#65; &#x42;'
+    const decoded = unescapeXml(raw)
+    expect(decoded).toBe("C & C++ <Templates> \"Guide\" 'Tips' A B")
+  })
+
+  it('prevents double-unescaping vulnerabilities', () => {
+    const raw = '&amp;lt;div&amp;gt;'
+    const decoded = unescapeXml(raw)
+    expect(decoded).toBe('&lt;div&gt;')
+  })
+
+  it('handles supplementary unicode code points above 0xFFFF', () => {
+    const raw = 'Smile &#x1F600; Rocket &#128640;'
+    const decoded = unescapeXml(raw)
+    expect(decoded).toBe('Smile 😀 Rocket 🚀')
+  })
+
+  it('decodes XML entities inside DOCX paragraphs', async () => {
+    const zip = new JSZip()
+    const sampleXml = `<?xml version="1.0" encoding="UTF-8"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:r><w:t>Comparing Python &amp; Rust &lt;Speed &gt; Safety&gt;</w:t></w:r>
+    </w:p>
+  </w:body>
+</w:document>`
+    zip.file('word/document.xml', sampleXml)
+    const buffer = await zip.generateAsync({ type: 'arraybuffer' })
+    const extracted = await extractDocxText(buffer)
+    expect(extracted).toBe('Comparing Python & Rust <Speed > Safety>')
+  })
+
+  it('preserves line breaks and tabs within DOCX paragraphs', async () => {
+    const zip = new JSZip()
+    const sampleXml = `<?xml version="1.0" encoding="UTF-8"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:r>
+        <w:t>Term</w:t>
+        <w:tab/>
+        <w:t>Definition</w:t>
+        <w:br/>
+        <w:t>Next line explanation</w:t>
+      </w:r>
+    </w:p>
+  </w:body>
+</w:document>`
+    zip.file('word/document.xml', sampleXml)
+    const buffer = await zip.generateAsync({ type: 'arraybuffer' })
+    const extracted = await extractDocxText(buffer)
+    expect(extracted).toContain('Term\tDefinition\nNext line explanation')
+  })
+
+  it('preserves line breaks within PPTX slides', async () => {
+    const zip = new JSZip()
+    zip.file('ppt/presentation.xml', '<p:presentation/>')
+    const slideXml = `<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+      <a:p>
+        <a:r><a:t>Bullet 1 Line 1</a:t></a:r>
+        <a:br/>
+        <a:r><a:t>Bullet 1 Line 2</a:t></a:r>
+      </a:p>
+    </p:sld>`
+    zip.file('ppt/slides/slide1.xml', slideXml)
+    const buffer = await zip.generateAsync({ type: 'arraybuffer' })
+    const extracted = await extractPptxText(buffer)
+    expect(extracted).toContain('Bullet 1 Line 1\nBullet 1 Line 2')
   })
 })

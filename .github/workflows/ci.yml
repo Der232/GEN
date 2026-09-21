@@ -33,7 +33,7 @@ jobs:
         run: pnpm exec biome check --error-on-warnings ./src 2>&1 | tee /tmp/lint-output.txt
 
       - name: Format verification
-        run: pnpm exec biome format --check ./src 2>&1 | tee -a /tmp/lint-output.txt
+        run: pnpm exec biome format ./src 2>&1 | tee -a /tmp/lint-output.txt
 
       - name: Upload lint output
         if: failure()

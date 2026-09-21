@@ -21,3 +21,4 @@ dev.db
 .agents/
 skills-lock.json
 brag-output*/
+coverage/
