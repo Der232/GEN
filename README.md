@@ -108,7 +108,7 @@ src/
 
 ## Acknowledgments & Third-Party Attributions
 
-```markdown
+```text
 This project is built on top of the following open-source libraries and third-party services. We're grateful to their maintainers.
 
 **Frameworks & UI**
