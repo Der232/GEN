@@ -2,7 +2,7 @@
 
 Generate custom exams on any topic using AI, practice with instant grading, and explore exams created by others. Built for learners, educators, and autodidacts.
 
-To run this application first: 
+To run this application first:
 
 - **Custom Exam Generation** — Generate rigorous, multi-format exams (Multiple Choice, True/False) on any subject via Groq AI
 - **Document Upload** — Use PDF, PPTX, or DOCX files as source material for exam generation
@@ -18,7 +18,7 @@ To run this application first:
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+| ------- | ----------- |
 | Framework | [TanStack Start](https://tanstack.com/start) + [TanStack Router](https://tanstack.com/router) |
 | UI | React 19, [Tailwind CSS v4](https://tailwindcss.com/), [Lucide Icons](https://lucide.dev/) |
 | State | [Zustand](https://zustand-demo.pmnd.rs/) |
@@ -65,7 +65,7 @@ pnpm dlx @better-auth/cli secret
 ## Scripts
 
 | Command | Description |
-|---------|-------------|
+| --------- | ------------- |
 | `pnpm dev` | Start dev server on port 3000 |
 | `pnpm build` | Build for production |
 | `pnpm lint` | Lint with Biome |
@@ -96,7 +96,7 @@ The `wrangler.jsonc` configures D1, R2, and Queue bindings.
 
 ## Project Structure
 
-```
+```text
 src/
 ├── components/       # UI components (AuthModal, Sidebar, TopHeader, etc.)
 ├── db/               # Database connection and Drizzle schema
@@ -104,6 +104,38 @@ src/
 ├── routes/           # File-based routes (TanStack Router)
 ├── stores/           # Zustand stores (exam session, performance, user, nav)
 └── integrations/     # TanStack Query setup
+```
+
+## Acknowledgments & Third-Party Attributions
+
+```markdown
+This project is built on top of the following open-source libraries and third-party services. We're grateful to their maintainers.
+
+**Frameworks & UI**
+- [TanStack Start](https://tanstack.com/start) & [TanStack Router](https://tanstack.com/router) — MIT
+- [React](https://react.dev/) — MIT
+- [Tailwind CSS](https://tailwindcss.com/) — MIT
+- [Zustand](https://zustand-demo.pmnd.rs/) — MIT
+- [Lucide Icons](https://lucide.dev/) — ISC
+
+**Backend & Data**
+- [Better Auth](https://www.better-auth.com/) — MIT
+- [Drizzle ORM](https://orm.drizzle.team/) — Apache-2.0
+- [Zod](https://zod.dev/) — MIT
+- [JSZip](https://stuk.github.io/jszip/) — MIT/GPLv3 dual license
+- [unpdf](https://github.com/unjs/unpdf) — MIT
+
+**Infrastructure & AI**
+- [Cloudflare Workers, D1, R2, and Queues](https://developers.cloudflare.com/) — Cloudflare, Inc.
+- [Groq API](https://groq.com/) — inference provider for exam generation and AI tutoring
+
+**Tooling**
+- [Biome](https://biomejs.dev/) — MIT
+- [Vitest](https://vitest.dev/) — MIT
+- [pnpm](https://pnpm.io/) — MIT
+- [TruffleHog](https://github.com/trufflesecurity/trufflehog) — used in CI for automated secret scanning
+
+All trademarks and product names are property of their respective owners. No affiliation with or endorsement by these projects is implied.
 ```
 
 ## License
