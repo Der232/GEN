@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
+	AlertCircle,
 	Bookmark,
 	Check,
 	Edit3,
@@ -356,7 +357,20 @@ function GeneratePage() {
 
 			const data = await res.json();
 			if (!res.ok) {
-				throw new Error(data.error || "Failed to generate exam.");
+				const errMsg = data.error || "Failed to generate exam.";
+				if (
+					data.code === "DOCUMENT_TOKEN_LIMIT_EXCEEDED" ||
+					errMsg.includes("413") ||
+					errMsg.includes("request_too_large") ||
+					errMsg.includes("Request Entity Too Large") ||
+					errMsg.includes("tokens per minute") ||
+					errMsg.includes("ITPM")
+				) {
+					throw new Error(
+						"The uploaded document contains too much content to process in a single exam and exceeds the AI token limit. Please specify a narrower focus in the instructions above — for example, focus by chapter or topic (e.g., 'Focus on Chapter 1', 'Focus on Chapters 3 to 5', or 'Focus on [Topic A]').",
+					);
+				}
+				throw new Error(errMsg);
 			}
 
 			setResult(data);
@@ -404,7 +418,20 @@ function GeneratePage() {
 
 			const data = await res.json();
 			if (!res.ok) {
-				throw new Error(data.error || "Failed to regenerate exam.");
+				const errMsg = data.error || "Failed to regenerate exam.";
+				if (
+					data.code === "DOCUMENT_TOKEN_LIMIT_EXCEEDED" ||
+					errMsg.includes("413") ||
+					errMsg.includes("request_too_large") ||
+					errMsg.includes("Request Entity Too Large") ||
+					errMsg.includes("tokens per minute") ||
+					errMsg.includes("ITPM")
+				) {
+					throw new Error(
+						"The uploaded document contains too much content to process in a single exam and exceeds the AI token limit. Please specify a narrower focus in the instructions above — for example, focus by chapter or topic (e.g., 'Focus on Chapter 1', 'Focus on Chapters 3 to 5', or 'Focus on [Topic A]').",
+					);
+				}
+				throw new Error(errMsg);
 			}
 
 			setResult(data);
@@ -920,9 +947,22 @@ function GeneratePage() {
 					</div>
 
 					{error && (
-						<div className="p-3 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.25)] text-xs text-[var(--color-danger)] flex items-center gap-2">
-							<HelpCircle className="h-4 w-4 shrink-0" />
-							<span>{error}</span>
+						<div className="p-3.5 sm:p-4 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.25)] text-xs text-[var(--color-danger)] flex items-start gap-3 shadow-xs animate-fade-in">
+							<AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-[var(--color-danger)]" />
+							<div className="space-y-1">
+								{error.includes("exceeds the AI token limit") ? (
+									<>
+										<p className="font-bold text-[var(--text-primary)]">
+											Document Exceeds AI Token Limit
+										</p>
+										<p className="leading-relaxed text-[var(--text-secondary)]">
+											{error}
+										</p>
+									</>
+								) : (
+									<p className="font-semibold leading-relaxed">{error}</p>
+								)}
+							</div>
 						</div>
 					)}
 
@@ -1024,9 +1064,22 @@ function GeneratePage() {
 					</div>
 
 					{error && (
-						<div className="p-3 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.25)] text-xs text-[var(--color-danger)] flex items-center gap-2">
-							<HelpCircle className="h-4 w-4 shrink-0" />
-							<span>{error}</span>
+						<div className="p-3.5 sm:p-4 rounded-xl bg-[var(--color-danger-subtle)] border border-[rgba(239,68,68,0.25)] text-xs text-[var(--color-danger)] flex items-start gap-3 shadow-xs animate-fade-in">
+							<AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-[var(--color-danger)]" />
+							<div className="space-y-1">
+								{error.includes("exceeds the AI token limit") ? (
+									<>
+										<p className="font-bold text-[var(--text-primary)]">
+											Document Exceeds AI Token Limit
+										</p>
+										<p className="leading-relaxed text-[var(--text-secondary)]">
+											{error}
+										</p>
+									</>
+								) : (
+									<p className="font-semibold leading-relaxed">{error}</p>
+								)}
+							</div>
 						</div>
 					)}
 
