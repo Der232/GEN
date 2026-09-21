@@ -1,0 +1,1 @@
+CREATE INDEX `idx_attempt_answers_lookup` ON `attempt_answers` (`attempt_id`,`question_id`);
