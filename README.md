@@ -111,25 +111,25 @@ src/
 ```text
 This project is built on top of the following open-source libraries and third-party services. We're grateful to their maintainers.
 
-**Frameworks & UI**
+#Frameworks & UI
 - [TanStack Start](https://tanstack.com/start) & [TanStack Router](https://tanstack.com/router) — MIT
 - [React](https://react.dev/) — MIT
 - [Tailwind CSS](https://tailwindcss.com/) — MIT
 - [Zustand](https://zustand-demo.pmnd.rs/) — MIT
 - [Lucide Icons](https://lucide.dev/) — ISC
 
-**Backend & Data**
+#Backend & Data
 - [Better Auth](https://www.better-auth.com/) — MIT
 - [Drizzle ORM](https://orm.drizzle.team/) — Apache-2.0
 - [Zod](https://zod.dev/) — MIT
 - [JSZip](https://stuk.github.io/jszip/) — MIT/GPLv3 dual license
 - [unpdf](https://github.com/unjs/unpdf) — MIT
 
-**Infrastructure & AI**
+#Infrastructure & AI
 - [Cloudflare Workers, D1, R2, and Queues](https://developers.cloudflare.com/) — Cloudflare, Inc.
 - [Groq API](https://groq.com/) — inference provider for exam generation and AI tutoring
 
-**Tooling**
+#Tooling
 - [Biome](https://biomejs.dev/) — MIT
 - [Vitest](https://vitest.dev/) — MIT
 - [pnpm](https://pnpm.io/) — MIT
