@@ -34,6 +34,7 @@ export const Route = createFileRoute("/api/exam/generate")({
 	server: {
 		handlers: {
 			POST: async ({ request }) => {
+				let hasDocument = false;
 				try {
 					const session = await auth.api.getSession({
 						headers: request.headers,
@@ -130,6 +131,7 @@ export const Route = createFileRoute("/api/exam/generate")({
 								},
 							);
 						}
+						hasDocument = true;
 					}
 
 					if (
@@ -309,6 +311,27 @@ Please generate the complete exam in the required JSON format.`;
 					});
 				} catch (error: any) {
 					console.error("Exam generation error:", error);
+					const rawMsg = error?.message || "";
+					const isTokenLimitExceeded =
+						hasDocument &&
+						(rawMsg.includes("413") ||
+							rawMsg.includes("request_too_large") ||
+							rawMsg.includes("Request Entity Too Large") ||
+							rawMsg.includes("tokens per minute") ||
+							rawMsg.includes("ITPM") ||
+							rawMsg.includes("rate_limit_exceeded"));
+
+					if (isTokenLimitExceeded) {
+						return new Response(
+							JSON.stringify({
+								error:
+									"The uploaded document contains too much content to process in a single exam and exceeds the AI token limit. Please specify a narrower focus in the instructions above — for example, focus by chapter or topic (e.g., 'Focus on Chapter 1', 'Focus on Chapters 3 to 5', or 'Focus on [Topic A]').",
+								code: "DOCUMENT_TOKEN_LIMIT_EXCEEDED",
+							}),
+							{ status: 413, headers: { "Content-Type": "application/json" } },
+						);
+					}
+
 					return new Response(
 						JSON.stringify({
 							error:
