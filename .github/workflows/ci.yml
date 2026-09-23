@@ -224,9 +224,11 @@ jobs:
   report:
     name: "📋 CI Report"
     needs: [lint, typecheck, test, build, schema-check, security-audit]
-    if: always() && github.event_name == 'pull_request'
+    if: always() && github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
     runs-on: ubuntu-latest
     permissions:
+      contents: read
+      issues: write
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
