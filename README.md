@@ -140,4 +140,4 @@ All trademarks and product names are property of their respective owners. No aff
 
 ## License
 
-All rights reserved.
+All rights reserved c.
