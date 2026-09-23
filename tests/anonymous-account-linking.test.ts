@@ -15,7 +15,6 @@ describe('Anonymous User and Account Linking Flow', () => {
   const examId1 = `test_exam_pub_${testRunId}`
   const examId2 = `test_exam_priv_${testRunId}`
   const attemptId1 = `test_att_${testRunId}`
-
   afterAll(() => {
     // Cleanup any lingering test data
     sqlite.prepare('DELETE FROM attempt_answers WHERE attempt_id LIKE ?').run(`%${testRunId}%`)
